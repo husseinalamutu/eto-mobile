@@ -1,0 +1,66 @@
+[
+  {
+    "id": "opp-001",
+    "title": "Sahel Agro-Pastoral Drought Resilience Input Subsidy",
+    "organization": "FAO Sahel Initiative & Kano State Ministry of Agriculture",
+    "category": "Agriculture",
+    "target_state": "Kano",
+    "target_gender": "All",
+    "verification_date": "2026-08-20",
+    "source_url": "https://fao.org/sahel-resilience/subsidies/2026",
+    "actionable_steps": [
+      "Obtain your verified Farmer Cooperative Registration Slip from your Ward Agriculture Extension Officer.",
+      "Visit the Dawanau Agricultural Desk (Desk #4, Old Market Road) between 08:00 and 13:00 on Tuesdays or Thursdays.",
+      "Present physical NIN slip and cooperative membership letter; biometric verification is waived for low-connectivity zones.",
+      "Collect allocation voucher for 2x50kg drought-resistant sorghum seed bags and solar water-pump voucher."
+    ]
+  },
+  {
+    "id": "opp-002",
+    "title": "Community Land Title & Pastoralist Corridor Legal Aid",
+    "organization": "OSF Africa × Kaduna Community Legal Aid Network",
+    "category": "Legal Aid",
+    "target_state": "Kaduna",
+    "target_gender": "All",
+    "verification_date": "2026-09-02",
+    "source_url": "https://osf.org/initiatives/sahel-justice/legal-clinics",
+    "actionable_steps": [
+      "File a community dispute notice with the Village Head (Mai Angwa) to record the traditional grazing corridor boundary.",
+      "Attend the free mobile legal clinic hosted every alternate Saturday at the Kachia Civic Center.",
+      "Meet pro-bono counsel to draft a Statutory Right of Occupancy representation or traditional arbitration deed.",
+      "Receive court-stamped protection order guaranteeing safe transit without retaliatory boundary encroachment."
+    ]
+  },
+  {
+    "id": "opp-003",
+    "title": "Sahel Grassroots Youth Peace & Livelihood Micro-Grant",
+    "organization": "OSF Transformative Peace × Borno Youth Alliance",
+    "category": "Peace Grant",
+    "target_state": "Borno",
+    "target_gender": "All",
+    "verification_date": "2026-08-15",
+    "source_url": "https://osf.org/peace-africa/grants/borno-2026",
+    "actionable_steps": [
+      "Form an informal community cohesion group with at least 5 youth members (ages 18-35).",
+      "Document a 1-page civic peace proposal addressing community early warning, market security, or borehole maintenance.",
+      "Submit physical application to the Maiduguri Civil Society Hub (Opposite State Library, Post Office Area).",
+      "Shortlisted groups receive a ₦450,000 cash grant disbursed directly through postal draft or agent banking."
+    ]
+  },
+  {
+    "id": "opp-004",
+    "title": "Rural Women Solar Borehole & Cooperative Farming Scheme",
+    "organization": "Sahel Women Development Fund & Local CBO Consortium",
+    "category": "Agriculture",
+    "target_state": "Borno",
+    "target_gender": "Female",
+    "verification_date": "2026-09-01",
+    "source_url": "https://sahelwomenfund.org/boreholes-2026",
+    "actionable_steps": [
+      "Register with the Local Ward Women Leader (Magajiya) in your ward.",
+      "Provide proof of continuous residency (voter card or traditional endorsement letter from Mai Angwa).",
+      "Attend the communal water rights management workshop at the Ward Primary Health Clinic.",
+      "Receive certified membership pass for priority access to solar irrigation plots and monthly seed distribution."
+    ]
+  }
+]
