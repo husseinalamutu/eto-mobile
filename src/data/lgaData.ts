@@ -6,7 +6,7 @@ export interface LGAOption {
   }[];
 }
 
-export const NORTHERN_NIGERIA_LOCATIONS: LGAOption[] = [
+export const NIGERIA_LOCATIONS: LGAOption[] = [
   {
     state: 'Kano',
     lgas: [
@@ -64,36 +64,43 @@ export const NORTHERN_NIGERIA_LOCATIONS: LGAOption[] = [
         name: 'Damboa',
         wards: ['Damboa Central', 'Gumsuri', 'Wawa', 'Korede'],
       },
+    ],
+  },
+  {
+    state: 'Oyo',
+    lgas: [
       {
-        name: 'Bama',
-        wards: ['Bama Central', 'Shehuri', 'Kasugula', 'Sabsabwa'],
+        name: 'Ibadan North / Bodija',
+        wards: ['Bodija Market Ward', 'Agbowo', 'Sango', 'Yemetu'],
+      },
+      {
+        name: 'Saki West (Agrarian Belt)',
+        wards: ['Saki Central', 'Kinnikinni', 'Agunrege', 'Sepeteri Border'],
+      },
+      {
+        name: 'Ogbomoso North',
+        wards: ['Oja-Igbo', 'Masifa', 'Isale-Afon', 'Aguodo'],
       },
     ],
   },
   {
-    state: 'Katsina',
+    state: 'Enugu',
     lgas: [
       {
-        name: 'Funtua',
-        wards: ['Funtua Central', 'Dandutse', 'Makera', 'Tudun Iya'],
+        name: 'Nsukka (Agro-Cooperative Hub)',
+        wards: ['Nsukka Urban', 'Opi Agro-Corridor', 'Ibagwa-Ani', 'Alor-Uno'],
       },
       {
-        name: 'Katsina Urban',
-        wards: ['Wakilin Kudu', 'Wakilin Arewa', 'Shinkafi', 'Kofar Sauri'],
-      },
-    ],
-  },
-  {
-    state: 'Sokoto',
-    lgas: [
-      {
-        name: 'Wamakko',
-        wards: ['Wamakko Town', 'Arkilla', 'Gidan Bubu', 'Dundaye'],
+        name: 'Enugu North / Ogbete',
+        wards: ['Ogbete Market Ward', 'Asata', 'Ogui Urban', 'Coal Camp'],
       },
       {
-        name: 'Goronyo',
-        wards: ['Goronyo Central', 'Shinaka', 'Takakume', 'Kagara'],
+        name: 'Udi',
+        wards: ['Udi Central', 'Nachi Borehole Area', 'Eke', 'Ngwo'],
       },
     ],
   },
 ];
+
+// Backward-compatible alias
+export const NORTHERN_NIGERIA_LOCATIONS = NIGERIA_LOCATIONS;

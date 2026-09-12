@@ -27,7 +27,12 @@ export default function App() {
   const t = translations[language];
 
   const toggleLanguage = () => {
-    setLanguage((prev) => (prev === 'en' ? 'ha' : 'en'));
+    setLanguage((prev) => {
+      if (prev === 'en') return 'ha';
+      if (prev === 'ha') return 'yo';
+      if (prev === 'yo') return 'ig';
+      return 'en';
+    });
   };
 
   const refreshPendingCount = useCallback(async () => {
@@ -117,7 +122,13 @@ export default function App() {
           activeOpacity={0.7}
         >
           <Text style={styles.langPillText}>
-            {language === 'en' ? '🇳🇬 HA' : '🇬🇧 EN'}
+            {language === 'en'
+              ? '🇬🇧 EN'
+              : language === 'ha'
+              ? '🇳🇬 HA'
+              : language === 'yo'
+              ? '🇳🇬 YO'
+              : '🇳🇬 IG'}
           </Text>
         </TouchableOpacity>
 

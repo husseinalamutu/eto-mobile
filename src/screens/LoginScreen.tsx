@@ -94,7 +94,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             activeOpacity={0.7}
           >
             <Text style={styles.langToggleText}>
-              {language === 'en' ? '🇳🇬 Hausa' : '🇬🇧 English'}
+              {language === 'en'
+                ? '🇬🇧 EN'
+                : language === 'ha'
+                ? '🇳🇬 HA (Hausa)'
+                : language === 'yo'
+                ? '🇳🇬 YO (Yorùbá)'
+                : '🇳🇬 IG (Igbo)'}
             </Text>
           </TouchableOpacity>
         </View>

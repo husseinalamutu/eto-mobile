@@ -65,66 +65,34 @@
   },
   {
     "id": "opp-005",
-    "title": "Primary Health Clinic Essential Drug Supply Oversight",
-    "organization": "Kano Civil Society Forum & OSF Africa Health Watch",
-    "category": "Civic Oversight",
-    "target_state": "Kano",
+    "title": "Southwest Agro-Ecological Cassava & Grain Cooperative Scheme",
+    "organization": "OSF Africa × Oyo State Smallholder Farmers Coalition",
+    "category": "Agriculture",
+    "target_state": "Oyo",
     "target_gender": "All",
-    "verification_date": "2026-08-28",
-    "source_url": "https://kanocivic.org/health-tracking",
+    "verification_date": "2026-09-04",
+    "source_url": "https://osf.org/initiatives/southwest-agro-resilience",
     "actionable_steps": [
-      "Inspect the monthly drug allocation chalkboard at your Ward Primary Health Center (PHC).",
-      "If anti-malarials or maternal vitamins are reported 'out of stock' while logged on the board, request the Ward Development Committee (WDC) logbook.",
-      "Present this verified notice to the Village Head or text the anonymized code to the community oversight board at Gwarzo Secretariat.",
-      "The oversight desk dispatches a physical verification auditor within 48 hours."
+      "Collect group verification letter from the Saki West or Bodija Farmers Union office.",
+      "Present proof of communal farming cluster (minimum 5 farmers per cluster) to the Agro Extension Desk at Secretariat Ibadan.",
+      "Receive certified pest-resistant cassava stem bundles and solar processing vouchers for cooperative garri mills.",
+      "Attend the quarterly dispute resolution forum between local farmers and transhumance cattle rearers."
     ]
   },
   {
     "id": "opp-006",
-    "title": "Solar Grain Milling Cooperative Equipment Scheme",
-    "organization": "Katsina State Agricultural Development Project (KTADP)",
-    "category": "Agriculture",
-    "target_state": "Katsina",
+    "title": "Southeast Community Mediation & Land Title Defense Clinic",
+    "organization": "OSF Transformative Justice × Enugu Legal Aid Initiative",
+    "category": "Legal Aid",
+    "target_state": "Enugu",
     "target_gender": "All",
-    "verification_date": "2026-09-05",
-    "source_url": "https://ktadp.gov.ng/solar-milling-2026",
+    "verification_date": "2026-09-06",
+    "source_url": "https://osf.org/peace-africa/enugu-land-justice",
     "actionable_steps": [
-      "Verify that your local women's or youth farming group comprises at least 8 verified grain growers.",
-      "Obtain an attestation of communal land grant (minimum 10m x 10m plot) from the Funtua District Head.",
-      "Submit group application slip to the KTADP Zonal Office in Funtua.",
-      "Qualifying cooperatives receive installation of a zero-emission solar diesel-substitute grain mill with 3-year warranty."
-    ]
-  },
-  {
-    "id": "opp-007",
-    "title": "Community Radio Early-Warning & Peace Reporter Stipend",
-    "organization": "Sahel Peace Media & Build Up Peacebuilding Lab",
-    "category": "Peace Grant",
-    "target_state": "Kaduna",
-    "target_gender": "All",
-    "verification_date": "2026-09-08",
-    "source_url": "https://sahelpeace.org/radio-fellows-2026",
-    "actionable_steps": [
-      "Submit two written or voice-recorded examples of peaceful dispute de-escalation in your rural community.",
-      "Attend the 1-day safety and ethical reporting seminar at the Kaduna Media Academy.",
-      "Receive a solar battery pack, encrypted feature voice recorder, and monthly ₦75,000 reporting stipend.",
-      "File weekly communal harmony radio reports broadcast on local FM stations in Hausa and Fulfulde."
-    ]
-  },
-  {
-    "id": "opp-008",
-    "title": "Pastoralist Livestock Vaccination & Water Point Access",
-    "organization": "Borno Livestock Services & Regional Veterinary Health Fund",
-    "category": "Agriculture",
-    "target_state": "Borno",
-    "target_gender": "All",
-    "verification_date": "2026-08-30",
-    "source_url": "https://bornovet.org/transhumance-pass-2026",
-    "actionable_steps": [
-      "Register herd count with the Miyetti Allah or pastoralist elder representative at the Damboa cattle transit station.",
-      "Present cattle for free contagious bovine pleuropneumonia (CBPP) vaccination tags.",
-      "Collect the seasonal transhumance corridor transit pass allowing unrestricted access to certified community boreholes.",
-      "Keep the laminated stamp card accessible to present peacefully at any local grazing dispute committee."
+      "Obtain dispute verification document stamped by the Traditional Ruler (Igwe) or Town Union President.",
+      "Attend the free community legal clinic held every second Friday at the Nsukka Civic Hall.",
+      "Consult volunteer human rights attorneys to file a Community Land Rights Declaration under customary arbitration.",
+      "Secure court-registered recognition preventing illegal seizure of community farmlands and communal stream access."
     ]
   }
 ]
