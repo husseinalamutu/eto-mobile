@@ -2,8 +2,8 @@ export interface Opportunity {
   id: string;
   title: string;
   organization: string;
-  category: 'Legal Aid' | 'Agriculture' | 'Peace Grant' | string;
-  target_state: 'Kano' | 'Kaduna' | 'Borno' | 'All' | string;
+  category: 'Legal Aid' | 'Agriculture' | 'Peace Grant' | 'Civic Oversight' | string;
+  target_state: 'Kano' | 'Kaduna' | 'Borno' | 'Katsina' | 'Sokoto' | 'All' | string;
   target_gender: 'All' | 'Female' | 'Male' | string;
   verification_date: string;
   source_url: string;
@@ -27,3 +27,4 @@ export type NewReportInput = Omit<Report, 'id' | 'created_at' | 'synced'>;
 
 export type AppSecurityMode = 'LOCKED' | 'DECOY' | 'AUTHENTICATED';
 export type MainTab = 'opportunities' | 'report' | 'sync';
+export type Language = 'en' | 'ha';

@@ -8,7 +8,8 @@ import {
   StatusBar,
   ActivityIndicator,
 } from 'react-native';
-import { AppSecurityMode, MainTab } from './src/types';
+import { AppSecurityMode, MainTab, Language } from './src/types';
+import { translations } from './src/i18n/translations';
 import { initDatabase, getPendingCount } from './src/db';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { DecoyScreen } from './src/screens/DecoyScreen';
@@ -19,8 +20,15 @@ import { SyncScreen } from './src/screens/SyncScreen';
 export default function App() {
   const [securityMode, setSecurityMode] = useState<AppSecurityMode>('LOCKED');
   const [activeTab, setActiveTab] = useState<MainTab>('opportunities');
+  const [language, setLanguage] = useState<Language>('en');
   const [isDbReady, setIsDbReady] = useState<boolean>(false);
   const [pendingBadgeCount, setPendingBadgeCount] = useState<number>(0);
+
+  const t = translations[language];
+
+  const toggleLanguage = () => {
+    setLanguage((prev) => (prev === 'en' ? 'ha' : 'en'));
+  };
 
   const refreshPendingCount = useCallback(async () => {
     try {
@@ -40,25 +48,24 @@ export default function App() {
         setIsDbReady(true);
       } catch (err) {
         console.error('Database initialization error:', err);
-        setIsDbReady(true); // Allow UI to proceed even if offline sandbox
+        setIsDbReady(true);
       }
     }
     setupStorage();
   }, [refreshPendingCount]);
 
-  // Handler: Real PIN (1234) authenticated
+  // Real Access PIN (1234)
   const handleUnlock = () => {
     refreshPendingCount();
     setSecurityMode('AUTHENTICATED');
   };
 
-  // Handler: Duress PIN (9999) triggered at checkpoint
+  // Checkpoint Duress PIN (9999) or Panic Wipe (0000)
   const handleTriggerDuress = () => {
-    // Instantly route to harmless decoy screen
     setSecurityMode('DECOY');
   };
 
-  // Handler: Lock back to PIN screen
+  // Instant Tactical Lock
   const handleLock = () => {
     setActiveTab('opportunities');
     setSecurityMode('LOCKED');
@@ -74,48 +81,64 @@ export default function App() {
     );
   }
 
-  // 1. Decoy Screen (Disguised Grain & Weather bulletin)
+  // 1. Decoy Screen (AgriWeather & Grain Market Bulletin)
   if (securityMode === 'DECOY') {
     return <DecoyScreen onLock={handleLock} />;
   }
 
-  // 2. Lock Screen (Tactile PIN Pad)
+  // 2. Locked Mode (PIN Screen)
   if (securityMode === 'LOCKED') {
     return (
       <LoginScreen
         onUnlock={handleUnlock}
         onTriggerDuress={handleTriggerDuress}
+        language={language}
+        onToggleLanguage={toggleLanguage}
       />
     );
   }
 
-  // 3. Authenticated Eto Civic Application
+  // 3. Authenticated Main Eto Civic Application
   return (
     <SafeAreaView style={styles.mainContainer}>
       <StatusBar barStyle="light-content" backgroundColor="#0F172A" />
 
-      {/* Main Top App Bar */}
+      {/* Main Header */}
       <View style={styles.topBar}>
-        <View>
-          <Text style={styles.appTitle}>ETO • CIVIC LEDGER</Text>
-          <Text style={styles.appSubtitle}>Information You Can Trust • OSF Africa</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.appTitle}>{t.appName}</Text>
+          <Text style={styles.appSubtitle}>{t.appSubtitle}</Text>
         </View>
 
-        {/* Tactical Emergency Lock Button */}
+        {/* Language Switcher Pill */}
+        <TouchableOpacity
+          style={styles.langPill}
+          onPress={toggleLanguage}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.langPillText}>
+            {language === 'en' ? '🇳🇬 HA' : '🇬🇧 EN'}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Tactical Emergency Lock */}
         <TouchableOpacity
           style={styles.quickLockButton}
           onPress={handleLock}
           activeOpacity={0.8}
         >
-          <Text style={styles.quickLockText}>🔒 LOCK</Text>
+          <Text style={styles.quickLockText}>{t.quickLock}</Text>
         </TouchableOpacity>
       </View>
 
       {/* Screen Body */}
       <View style={styles.body}>
-        {activeTab === 'opportunities' && <OpportunityScreen />}
+        {activeTab === 'opportunities' && (
+          <OpportunityScreen language={language} />
+        )}
         {activeTab === 'report' && (
           <ReportScreen
+            language={language}
             onReportSubmitted={() => {
               refreshPendingCount();
               setActiveTab('sync');
@@ -123,13 +146,15 @@ export default function App() {
           />
         )}
         {activeTab === 'sync' && (
-          <SyncScreen onSyncComplete={refreshPendingCount} />
+          <SyncScreen
+            language={language}
+            onSyncComplete={refreshPendingCount}
+          />
         )}
       </View>
 
-      {/* Custom Bottom Tab Bar (Zero heavy navigation library overhead) */}
+      {/* Low-Overhead Native Tab Bar */}
       <View style={styles.tabBar}>
-        {/* Tab: Opportunities */}
         <TouchableOpacity
           style={[styles.tabButton, activeTab === 'opportunities' && styles.tabButtonActive]}
           onPress={() => setActiveTab('opportunities')}
@@ -142,11 +167,10 @@ export default function App() {
               activeTab === 'opportunities' && styles.tabLabelActive,
             ]}
           >
-            Opportunities
+            {t.tabOpportunities}
           </Text>
         </TouchableOpacity>
 
-        {/* Tab: Intake Form */}
         <TouchableOpacity
           style={[styles.tabButton, activeTab === 'report' && styles.tabButtonActive]}
           onPress={() => setActiveTab('report')}
@@ -159,11 +183,10 @@ export default function App() {
               activeTab === 'report' && styles.tabLabelActive,
             ]}
           >
-            File Incident
+            {t.tabReport}
           </Text>
         </TouchableOpacity>
 
-        {/* Tab: Manual Sync */}
         <TouchableOpacity
           style={[styles.tabButton, activeTab === 'sync' && styles.tabButtonActive]}
           onPress={() => {
@@ -186,7 +209,7 @@ export default function App() {
               activeTab === 'sync' && styles.tabLabelActive,
             ]}
           >
-            Sync Engine
+            {t.tabSync}
           </Text>
         </TouchableOpacity>
       </View>
@@ -201,77 +224,51 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loadingText: {
-    color: '#94A3B8',
-    fontSize: 13,
-    fontWeight: '600',
-    marginTop: 12,
-  },
-  mainContainer: {
-    flex: 1,
-    backgroundColor: '#0F172A',
-  },
+  loadingText: { color: '#94A3B8', fontSize: 13, fontWeight: '600', marginTop: 12 },
+  mainContainer: { flex: 1, backgroundColor: '#0F172A' },
   topBar: {
     backgroundColor: '#0F172A',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 10,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#1E293B',
+    gap: 8,
   },
-  appTitle: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: '#38BDF8',
-    letterSpacing: 0.5,
+  appTitle: { fontSize: 15, fontWeight: '900', color: '#38BDF8', letterSpacing: 0.5 },
+  appSubtitle: { fontSize: 10, color: '#94A3B8', marginTop: 1, fontWeight: '600' },
+  langPill: {
+    backgroundColor: '#1E293B',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#38BDF8',
   },
-  appSubtitle: {
-    fontSize: 10,
-    color: '#94A3B8',
-    marginTop: 2,
-    fontWeight: '600',
-  },
+  langPillText: { fontSize: 11, fontWeight: '800', color: '#38BDF8' },
   quickLockButton: {
     backgroundColor: '#1E293B',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 6,
     borderWidth: 1,
     borderColor: '#EF4444',
   },
-  quickLockText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#F87171',
-  },
-  body: {
-    flex: 1,
-  },
+  quickLockText: { fontSize: 11, fontWeight: '800', color: '#F87171' },
+  body: { flex: 1 },
   tabBar: {
     flexDirection: 'row',
     backgroundColor: '#0F172A',
     borderTopWidth: 1,
     borderTopColor: '#1E293B',
-    paddingVertical: 8,
-    paddingBottom: 10,
+    paddingVertical: 6,
+    paddingBottom: 8,
   },
-  tabButton: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 4,
-  },
-  tabButtonActive: {
-    backgroundColor: 'transparent',
-  },
-  tabIconWrapper: {
-    position: 'relative',
-  },
-  tabIcon: {
-    fontSize: 20,
-  },
+  tabButton: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 4 },
+  tabButtonActive: { backgroundColor: 'transparent' },
+  tabIconWrapper: { position: 'relative' },
+  tabIcon: { fontSize: 19 },
   tabBadge: {
     position: 'absolute',
     top: -4,
@@ -283,19 +280,7 @@ const styles = StyleSheet.create({
     minWidth: 16,
     alignItems: 'center',
   },
-  tabBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  tabLabel: {
-    fontSize: 11,
-    color: '#64748B',
-    fontWeight: '600',
-    marginTop: 3,
-  },
-  tabLabelActive: {
-    color: '#38BDF8',
-    fontWeight: '800',
-  },
+  tabBadgeText: { color: '#FFFFFF', fontSize: 9, fontWeight: '800' },
+  tabLabel: { fontSize: 10, color: '#64748B', fontWeight: '600', marginTop: 2 },
+  tabLabelActive: { color: '#38BDF8', fontWeight: '800' },
 });

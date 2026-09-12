@@ -12,72 +12,87 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { ReportCategory, ReportSeverity } from '../types';
+import { ReportCategory, ReportSeverity, Language } from '../types';
+import { translations } from '../i18n/translations';
 import { insertReport } from '../db';
+import { NORTHERN_NIGERIA_LOCATIONS } from '../data/lgaData';
 
 interface ReportScreenProps {
+  language: Language;
   onReportSubmitted?: () => void;
 }
 
-const CATEGORIES: { label: string; value: ReportCategory; desc: string }[] = [
-  {
-    label: 'Conflict Indicator',
-    value: 'Conflict Indicator',
-    desc: 'Pastoralist-farmer boundary disputes, grazing friction, or vigilante tensions.',
-  },
-  {
-    label: 'Infrastructure Breakdown',
-    value: 'Infrastructure Breakdown',
-    desc: 'Borehole/solar pump failure, bridge washout, or damaged public clinic.',
-  },
-  {
-    label: 'Misappropriation',
-    value: 'Misappropriation',
-    desc: 'Diverted relief food/seed supplies, extortion at checkpoints, or ghost projects.',
-  },
+const RESOURCE_TAGS = [
+  'Communal Borehole',
+  'Grazing Route Corridor',
+  'Fertilizer Voucher',
+  'Relief Food Diversion',
+  'Checkpoint Extortion',
+  'Farmland Encroachment',
 ];
 
-const SEVERITIES: { label: string; value: ReportSeverity; color: string }[] = [
-  { label: 'Low (Routine observation)', value: 'Low', color: '#16A34A' },
-  { label: 'Medium (Active friction)', value: 'Medium', color: '#F59E0B' },
-  { label: 'Critical (Immediate danger)', value: 'Critical', color: '#EF4444' },
-];
+export const ReportScreen: React.FC<ReportScreenProps> = ({ language, onReportSubmitted }) => {
+  const t = translations[language];
 
-export const ReportScreen: React.FC<ReportScreenProps> = ({ onReportSubmitted }) => {
+  const CATEGORIES: { label: string; value: ReportCategory; desc: string }[] = [
+    { label: t.catConflict, value: 'Conflict Indicator', desc: t.catConflictDesc },
+    { label: t.catInfra, value: 'Infrastructure Breakdown', desc: t.catInfraDesc },
+    { label: t.catMisappr, value: 'Misappropriation', desc: t.catMisapprDesc },
+  ];
+
+  const SEVERITIES: { label: string; value: ReportSeverity; color: string }[] = [
+    { label: t.sevLow, value: 'Low', color: '#16A34A' },
+    { label: t.sevMed, value: 'Medium', color: '#F59E0B' },
+    { label: t.sevCrit, value: 'Critical', color: '#EF4444' },
+  ];
+
   const [category, setCategory] = useState<ReportCategory>('Conflict Indicator');
-  const [location, setLocation] = useState<string>('');
+  const [selectedStateIndex, setSelectedStateIndex] = useState<number>(0);
+  const [selectedLGAIndex, setSelectedLGAIndex] = useState<number>(0);
+  const [selectedWardIndex, setSelectedWardIndex] = useState<number>(0);
+  const [specificLandmark, setSpecificLandmark] = useState<string>('');
+  const [selectedTags, setSelectedTags] = useState<string[]>(['Communal Borehole']);
   const [description, setDescription] = useState<string>('');
   const [severity, setSeverity] = useState<ReportSeverity>('Medium');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string>('');
 
-  // Confirmation Modal State
+  // Confirmation Modal
   const [confirmationVisible, setConfirmationVisible] = useState<boolean>(false);
   const [submittedReportId, setSubmittedReportId] = useState<string>('');
   const [submittedTimestamp, setSubmittedTimestamp] = useState<string>('');
 
+  const currentState = NORTHERN_NIGERIA_LOCATIONS[selectedStateIndex];
+  const currentLGA = currentState.lgas[selectedLGAIndex];
+  const currentWard = currentLGA.wards[selectedWardIndex];
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  };
+
   const handleSubmit = async () => {
     setFormError('');
 
-    if (!location.trim()) {
-      setFormError('Please provide a Ward or Local Government location.');
-      return;
-    }
-    if (!description.trim()) {
-      setFormError('Please provide a factual incident description.');
-      return;
-    }
-    if (description.trim().length < 15) {
-      setFormError('Description is too brief. Please detail the situation (min 15 chars).');
+    const formattedLocation = `${currentWard}, ${currentLGA.name} LGA, ${currentState.state}${
+      specificLandmark.trim() ? ` (${specificLandmark.trim()})` : ''
+    }`;
+
+    if (!description.trim() || description.trim().length < 15) {
+      setFormError('Please detail what occurred (minimum 15 characters).');
       return;
     }
 
     try {
       setIsSubmitting(true);
+      const tagPrefix = selectedTags.length > 0 ? `[Tags: ${selectedTags.join(', ')}] ` : '';
+      const fullDescription = `${tagPrefix}${description.trim()}`;
+
       const newReport = await insertReport({
         category,
-        location: location.trim(),
-        description: description.trim(),
+        location: formattedLocation,
+        description: fullDescription,
         severity,
       });
 
@@ -85,9 +100,9 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onReportSubmitted })
       setSubmittedTimestamp(newReport.created_at);
       setConfirmationVisible(true);
 
-      // Clear Form Fields
-      setLocation('');
+      // Reset form fields
       setDescription('');
+      setSpecificLandmark('');
       setSeverity('Medium');
       setCategory('Conflict Indicator');
 
@@ -110,33 +125,26 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onReportSubmitted })
         style={{ flex: 1 }}
       >
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-          {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.screenHeading}>Civic Incident Intake</Text>
-            <Text style={styles.screenSubheading}>
-              Zero-PII local SQLite ledger. Immune to network outages and checkpoint searches.
-            </Text>
+            <Text style={styles.screenHeading}>{t.reportHeading}</Text>
+            <Text style={styles.screenSubheading}>{t.reportSubheading}</Text>
           </View>
 
           {/* Anonymity Banner */}
           <View style={styles.securityBanner}>
-            <Text style={styles.securityTitle}>🛡️ ZERO-TRACE CIVIC ANONYMITY</Text>
-            <Text style={styles.securityText}>
-              IMEI, phone numbers, GPS coordinates, and personal identifiers are strictly excluded.
-              Reports are identified solely by a decentralized cryptographic hash.
-            </Text>
+            <Text style={styles.securityTitle}>{t.anonymityBannerTitle}</Text>
+            <Text style={styles.securityText}>{t.anonymityBannerText}</Text>
           </View>
 
-          {/* Form Error Banner */}
           {formError ? (
             <View style={styles.errorBox}>
               <Text style={styles.errorText}>⚠️ {formError}</Text>
             </View>
           ) : null}
 
-          {/* Category Selection */}
+          {/* Category Picker */}
           <View style={styles.inputGroup}>
-            <Text style={styles.fieldLabel}>INCIDENT CATEGORY</Text>
+            <Text style={styles.fieldLabel}>{t.fieldCategory}</Text>
             {CATEGORIES.map((cat) => {
               const isSelected = category === cat.value;
               return (
@@ -165,25 +173,100 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onReportSubmitted })
             })}
           </View>
 
-          {/* Ward / Location Input */}
+          {/* Quick LGA / Ward Selector for Northern Nigeria */}
           <View style={styles.inputGroup}>
-            <Text style={styles.fieldLabel}>WARD & LGA LOCATION</Text>
+            <Text style={styles.fieldLabel}>{t.fieldLocation}</Text>
+            
+            {/* State Picker */}
+            <Text style={styles.subSelectorLabel}>1. SELECT STATE:</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pillScroll}>
+              {NORTHERN_NIGERIA_LOCATIONS.map((loc, idx) => (
+                <TouchableOpacity
+                  key={loc.state}
+                  style={[styles.locationPill, selectedStateIndex === idx && styles.locationPillActive]}
+                  onPress={() => {
+                    setSelectedStateIndex(idx);
+                    setSelectedLGAIndex(0);
+                    setSelectedWardIndex(0);
+                  }}
+                >
+                  <Text style={[styles.locationPillText, selectedStateIndex === idx && styles.locationPillTextActive]}>
+                    {loc.state}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            {/* LGA Picker */}
+            <Text style={styles.subSelectorLabel}>2. SELECT LGA:</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pillScroll}>
+              {currentState.lgas.map((lga, idx) => (
+                <TouchableOpacity
+                  key={lga.name}
+                  style={[styles.locationPill, selectedLGAIndex === idx && styles.locationPillActive]}
+                  onPress={() => {
+                    setSelectedLGAIndex(idx);
+                    setSelectedWardIndex(0);
+                  }}
+                >
+                  <Text style={[styles.locationPillText, selectedLGAIndex === idx && styles.locationPillTextActive]}>
+                    {lga.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            {/* Ward Picker */}
+            <Text style={styles.subSelectorLabel}>3. SELECT WARD:</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pillScroll}>
+              {currentLGA.wards.map((ward, idx) => (
+                <TouchableOpacity
+                  key={ward}
+                  style={[styles.locationPill, selectedWardIndex === idx && styles.locationPillActive]}
+                  onPress={() => setSelectedWardIndex(idx)}
+                >
+                  <Text style={[styles.locationPillText, selectedWardIndex === idx && styles.locationPillTextActive]}>
+                    {ward}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            {/* Landmark text */}
             <TextInput
-              style={styles.textInput}
-              placeholder="e.g. Gwarzo Central Ward, Kano or Kachia LGA, Kaduna"
+              style={[styles.textInput, { marginTop: 8 }]}
+              placeholder="Optional landmark (e.g. Near Solar Pump #2 or Old Market Bridge)"
               placeholderTextColor="#64748B"
-              value={location}
-              onChangeText={setLocation}
-              autoCapitalize="words"
+              value={specificLandmark}
+              onChangeText={setSpecificLandmark}
             />
-            <Text style={styles.inputHint}>
-              Specify only administrative ward or landmark. Do not write personal house numbers.
-            </Text>
           </View>
 
-          {/* Severity Level */}
+          {/* Dispute / Resource Tags */}
           <View style={styles.inputGroup}>
-            <Text style={styles.fieldLabel}>SEVERITY LEVEL</Text>
+            <Text style={styles.fieldLabel}>RESOURCE DISPUTE TAGS</Text>
+            <View style={styles.tagGrid}>
+              {RESOURCE_TAGS.map((tag) => {
+                const isSelected = selectedTags.includes(tag);
+                return (
+                  <TouchableOpacity
+                    key={tag}
+                    style={[styles.tagChip, isSelected && styles.tagChipActive]}
+                    onPress={() => toggleTag(tag)}
+                  >
+                    <Text style={[styles.tagText, isSelected && styles.tagTextActive]}>
+                      {isSelected ? '✓ ' : '+ '}
+                      {tag}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Severity */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.fieldLabel}>{t.fieldSeverity}</Text>
             <View style={styles.severityRow}>
               {SEVERITIES.map((s) => {
                 const isSelected = severity === s.value;
@@ -193,19 +276,11 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onReportSubmitted })
                     activeOpacity={0.8}
                     style={[
                       styles.severityButton,
-                      isSelected && {
-                        borderColor: s.color,
-                        backgroundColor: s.color + '22',
-                      },
+                      isSelected && { borderColor: s.color, backgroundColor: s.color + '22' },
                     ]}
                     onPress={() => setSeverity(s.value)}
                   >
-                    <View
-                      style={[
-                        styles.severityDot,
-                        { backgroundColor: s.color },
-                      ]}
-                    />
+                    <View style={[styles.severityDot, { backgroundColor: s.color }]} />
                     <Text
                       style={[
                         styles.severityText,
@@ -220,12 +295,12 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onReportSubmitted })
             </View>
           </View>
 
-          {/* Incident Description */}
+          {/* Description */}
           <View style={styles.inputGroup}>
-            <Text style={styles.fieldLabel}>FACTUAL INCIDENT REPORT</Text>
+            <Text style={styles.fieldLabel}>{t.fieldDescription}</Text>
             <TextInput
               style={[styles.textInput, styles.textArea]}
-              placeholder="Describe what occurred, parties involved (e.g. farmer group / borehole committee), and current tension level..."
+              placeholder={t.descPlaceholder}
               placeholderTextColor="#64748B"
               value={description}
               onChangeText={setDescription}
@@ -233,12 +308,8 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onReportSubmitted })
               numberOfLines={5}
               textAlignVertical="top"
             />
-            <Text style={styles.inputHint}>
-              Strictly objective facts. Minimum 15 characters.
-            </Text>
           </View>
 
-          {/* Submit Button */}
           <TouchableOpacity
             style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
             onPress={handleSubmit}
@@ -246,45 +317,36 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onReportSubmitted })
             activeOpacity={0.8}
           >
             <Text style={styles.submitButtonText}>
-              {isSubmitting ? 'Recording to SQLite...' : 'Save to Offline Ledger'}
+              {isSubmitting ? t.submittingText : t.submitButton}
             </Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Offline Success Confirmation Modal */}
-      <Modal
-        visible={confirmationVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setConfirmationVisible(false)}
-      >
+      {/* Confirmation Modal */}
+      <Modal visible={confirmationVisible} transparent animationType="fade">
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
             <View style={styles.modalIconBox}>
               <Text style={styles.modalIcon}>💾</Text>
             </View>
-            <Text style={styles.modalTitle}>Stored in Offline Ledger</Text>
-            <Text style={styles.modalBody}>
-              Your incident report has been written directly to the local SQLite database. No network was required.
-            </Text>
+            <Text style={styles.modalTitle}>{t.storedModalTitle}</Text>
+            <Text style={styles.modalBody}>{t.storedModalBody}</Text>
 
             <View style={styles.modalLedgerInfo}>
-              <Text style={styles.modalInfoLabel}>LEDGER ENTRY ID:</Text>
+              <Text style={styles.modalInfoLabel}>{t.ledgerId}</Text>
               <Text style={styles.modalInfoHash}>{submittedReportId}</Text>
-
-              <Text style={[styles.modalInfoLabel, { marginTop: 8 }]}>TIMESTAMP:</Text>
+              <Text style={[styles.modalInfoLabel, { marginTop: 8 }]}>{t.timestamp}</Text>
               <Text style={styles.modalInfoVal}>{submittedTimestamp}</Text>
-
-              <Text style={[styles.modalInfoLabel, { marginTop: 8 }]}>SYNC STATUS:</Text>
-              <Text style={styles.modalStatusPill}>Pending Field Synchronization (synced = 0)</Text>
+              <Text style={[styles.modalInfoLabel, { marginTop: 8 }]}>STATUS:</Text>
+              <Text style={styles.modalStatusPill}>{t.syncStatusPending}</Text>
             </View>
 
             <TouchableOpacity
               style={styles.modalCloseButton}
               onPress={() => setConfirmationVisible(false)}
             >
-              <Text style={styles.modalCloseText}>Done</Text>
+              <Text style={styles.modalCloseText}>{t.done}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -294,183 +356,123 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onReportSubmitted })
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#0F172A',
-  },
-  scrollView: {
-    flex: 1,
-    backgroundColor: '#0F172A',
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
-  },
-  header: {
-    marginBottom: 12,
-  },
-  screenHeading: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#F8FAFC',
-  },
-  screenSubheading: {
-    fontSize: 12,
-    color: '#94A3B8',
-    marginTop: 3,
-  },
+  safeArea: { flex: 1, backgroundColor: '#0F172A' },
+  scrollView: { flex: 1, backgroundColor: '#0F172A' },
+  scrollContent: { padding: 16, paddingBottom: 40 },
+  header: { marginBottom: 12 },
+  screenHeading: { fontSize: 19, fontWeight: '800', color: '#F8FAFC' },
+  screenSubheading: { fontSize: 11, color: '#94A3B8', marginTop: 2 },
   securityBanner: {
     backgroundColor: '#1E293B',
     borderRadius: 8,
     padding: 12,
-    marginBottom: 16,
+    marginBottom: 14,
     borderLeftWidth: 4,
     borderLeftColor: '#38BDF8',
     borderWidth: 1,
     borderColor: '#334155',
   },
-  securityTitle: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#38BDF8',
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  securityText: {
-    fontSize: 11,
-    color: '#CBD5E1',
-    lineHeight: 16,
-  },
+  securityTitle: { fontSize: 11, fontWeight: '800', color: '#38BDF8', letterSpacing: 0.5, marginBottom: 4 },
+  securityText: { fontSize: 11, color: '#CBD5E1', lineHeight: 16 },
   errorBox: {
     backgroundColor: '#450A0A',
     borderRadius: 6,
     padding: 10,
-    marginBottom: 14,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: '#EF4444',
   },
-  errorText: {
-    color: '#FCA5A5',
-    fontSize: 12,
-    fontWeight: '600',
+  errorText: { color: '#FCA5A5', fontSize: 12, fontWeight: '600' },
+  inputGroup: { marginBottom: 16 },
+  fieldLabel: { fontSize: 11, fontWeight: '800', color: '#94A3B8', letterSpacing: 0.8, marginBottom: 6 },
+  subSelectorLabel: { fontSize: 10, fontWeight: '700', color: '#64748B', marginTop: 4, marginBottom: 4 },
+  pillScroll: { marginBottom: 6 },
+  locationPill: {
+    backgroundColor: '#1E293B',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    marginRight: 6,
+    borderWidth: 1,
+    borderColor: '#334155',
   },
-  inputGroup: {
-    marginBottom: 18,
+  locationPillActive: { backgroundColor: '#0284C7', borderColor: '#38BDF8' },
+  locationPillText: { fontSize: 11, fontWeight: '600', color: '#94A3B8' },
+  locationPillTextActive: { color: '#FFFFFF', fontWeight: '700' },
+  tagGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  tagChip: {
+    backgroundColor: '#1E293B',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#334155',
   },
-  fieldLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#94A3B8',
-    letterSpacing: 0.8,
-    marginBottom: 8,
-  },
+  tagChipActive: { backgroundColor: '#1E3A8A', borderColor: '#60A5FA' },
+  tagText: { fontSize: 11, color: '#94A3B8' },
+  tagTextActive: { color: '#93C5FD', fontWeight: '700' },
   categoryOption: {
     backgroundColor: '#1E293B',
     borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
+    padding: 10,
+    marginBottom: 6,
     flexDirection: 'row',
     alignItems: 'flex-start',
     borderWidth: 1,
     borderColor: '#334155',
   },
-  categoryOptionSelected: {
-    borderColor: '#38BDF8',
-    backgroundColor: '#0B2545',
-  },
+  categoryOptionSelected: { borderColor: '#38BDF8', backgroundColor: '#0B2545' },
   radioOuter: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: '#64748B',
-    marginRight: 10,
+    marginRight: 8,
     marginTop: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#38BDF8',
-  },
-  categoryOptionTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#F1F5F9',
-  },
-  categoryOptionTitleSelected: {
-    color: '#38BDF8',
-  },
-  categoryOptionDesc: {
-    fontSize: 11,
-    color: '#94A3B8',
-    marginTop: 2,
-    lineHeight: 15,
-  },
+  radioInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#38BDF8' },
+  categoryOptionTitle: { fontSize: 12, fontWeight: '700', color: '#F1F5F9' },
+  categoryOptionTitleSelected: { color: '#38BDF8' },
+  categoryOptionDesc: { fontSize: 10, color: '#94A3B8', marginTop: 2, lineHeight: 14 },
   textInput: {
     backgroundColor: '#1E293B',
     borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 13,
     color: '#F8FAFC',
     borderWidth: 1,
     borderColor: '#334155',
   },
-  textArea: {
-    height: 110,
-  },
-  inputHint: {
-    fontSize: 11,
-    color: '#64748B',
-    marginTop: 5,
-  },
-  severityRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
+  textArea: { height: 100 },
+  severityRow: { flexDirection: 'row', gap: 6 },
   severityButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
+    paddingVertical: 8,
     backgroundColor: '#1E293B',
-    borderRadius: 8,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: '#334155',
   },
-  severityDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
-  },
-  severityText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#94A3B8',
-  },
+  severityDot: { width: 6, height: 6, borderRadius: 3, marginRight: 5 },
+  severityText: { fontSize: 11, fontWeight: '600', color: '#94A3B8' },
   submitButton: {
     backgroundColor: '#0284C7',
     borderRadius: 8,
-    paddingVertical: 14,
+    paddingVertical: 13,
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 8,
     borderWidth: 1,
     borderColor: '#38BDF8',
   },
-  submitButtonDisabled: {
-    opacity: 0.6,
-  },
-  submitButtonText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
-  },
+  submitButtonDisabled: { opacity: 0.6 },
+  submitButtonText: { fontSize: 13, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.5 },
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.85)',
@@ -481,81 +483,45 @@ const styles = StyleSheet.create({
   modalCard: {
     backgroundColor: '#1E293B',
     borderRadius: 12,
-    padding: 20,
+    padding: 18,
     width: '100%',
-    maxWidth: 360,
+    maxWidth: 350,
     borderWidth: 1,
     borderColor: '#38BDF8',
     alignItems: 'center',
   },
   modalIconBox: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     backgroundColor: '#0B2545',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
-  modalIcon: {
-    fontSize: 24,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#F8FAFC',
-    marginBottom: 6,
-  },
-  modalBody: {
-    fontSize: 12,
-    color: '#CBD5E1',
-    textAlign: 'center',
-    lineHeight: 18,
-    marginBottom: 16,
-  },
+  modalIcon: { fontSize: 22 },
+  modalTitle: { fontSize: 17, fontWeight: '800', color: '#F8FAFC', marginBottom: 4 },
+  modalBody: { fontSize: 11, color: '#CBD5E1', textAlign: 'center', lineHeight: 16, marginBottom: 14 },
   modalLedgerInfo: {
     width: '100%',
     backgroundColor: '#0F172A',
     borderRadius: 8,
-    padding: 12,
+    padding: 10,
     borderWidth: 1,
     borderColor: '#334155',
-    marginBottom: 16,
+    marginBottom: 14,
   },
-  modalInfoLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#64748B',
-    letterSpacing: 0.5,
-  },
-  modalInfoHash: {
-    fontSize: 11,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    color: '#38BDF8',
-    marginTop: 2,
-  },
-  modalInfoVal: {
-    fontSize: 11,
-    color: '#F1F5F9',
-    marginTop: 2,
-  },
-  modalStatusPill: {
-    fontSize: 11,
-    color: '#F59E0B',
-    fontWeight: '700',
-    marginTop: 2,
-  },
+  modalInfoLabel: { fontSize: 9, fontWeight: '800', color: '#64748B', letterSpacing: 0.5 },
+  modalInfoHash: { fontSize: 10, fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace', color: '#38BDF8', marginTop: 1 },
+  modalInfoVal: { fontSize: 10, color: '#F1F5F9', marginTop: 1 },
+  modalStatusPill: { fontSize: 10, color: '#F59E0B', fontWeight: '700', marginTop: 1 },
   modalCloseButton: {
     backgroundColor: '#0284C7',
-    paddingVertical: 10,
-    paddingHorizontal: 24,
+    paddingVertical: 9,
+    paddingHorizontal: 20,
     borderRadius: 6,
     width: '100%',
     alignItems: 'center',
   },
-  modalCloseText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
+  modalCloseText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
 });

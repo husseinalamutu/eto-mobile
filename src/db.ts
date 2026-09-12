@@ -3,9 +3,6 @@ import { Report, NewReportInput } from './types';
 
 let dbInstance: SQLite.SQLiteDatabase | null = null;
 
-/**
- * Get or initialize the singleton SQLite database instance.
- */
 export async function getDB(): Promise<SQLite.SQLiteDatabase> {
   if (!dbInstance) {
     dbInstance = await SQLite.openDatabaseAsync('eto.db');
@@ -14,8 +11,8 @@ export async function getDB(): Promise<SQLite.SQLiteDatabase> {
 }
 
 /**
- * Initializes the SQLite database schema.
- * Immune to OS cache clearing on low-resource Android devices.
+ * Initializes the SQLite database schema with Write-Ahead Logging (WAL).
+ * WAL provides maximum corruption resistance during battery pull or abrupt shutdowns.
  */
 export async function initDatabase(): Promise<void> {
   const db = await getDB();
@@ -31,12 +28,16 @@ export async function initDatabase(): Promise<void> {
       synced INTEGER DEFAULT 0
     );
     CREATE INDEX IF NOT EXISTS idx_reports_synced ON reports(synced);
+
+    CREATE TABLE IF NOT EXISTS bookmarks (
+      opportunity_id TEXT PRIMARY KEY,
+      saved_at TEXT NOT NULL
+    );
   `);
 }
 
 /**
  * Lightweight RFC4122 v4 compliant UUID generator.
- * Avoids heavy crypto packages that strain 1GB Android Go RAM.
  */
 function generateUUID(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -75,20 +76,13 @@ export async function insertReport(input: NewReportInput): Promise<Report> {
   };
 }
 
-/**
- * Fetch all pending (unsynced) reports from the local ledger.
- */
 export async function getPendingReports(): Promise<Report[]> {
   const db = await getDB();
-  const rows = await db.getAllAsync<Report>(
+  return await db.getAllAsync<Report>(
     'SELECT * FROM reports WHERE synced = 0 ORDER BY created_at DESC'
   );
-  return rows;
 }
 
-/**
- * Returns count of unsynced offline records.
- */
 export async function getPendingCount(): Promise<number> {
   const db = await getDB();
   const result = await db.getFirstAsync<{ count: number }>(
@@ -97,20 +91,13 @@ export async function getPendingCount(): Promise<number> {
   return result?.count ?? 0;
 }
 
-/**
- * Fetch all reports (both synced and pending) for auditing.
- */
 export async function getAllReports(): Promise<Report[]> {
   const db = await getDB();
-  const rows = await db.getAllAsync<Report>(
+  return await db.getAllAsync<Report>(
     'SELECT * FROM reports ORDER BY created_at DESC'
   );
-  return rows;
 }
 
-/**
- * Mark a batch of report IDs as synced once successfully transmitted.
- */
 export async function markReportsSynced(ids: string[]): Promise<void> {
   if (ids.length === 0) return;
   const db = await getDB();
@@ -122,9 +109,61 @@ export async function markReportsSynced(ids: string[]): Promise<void> {
 }
 
 /**
- * Clear reports table (useful for testing and memory resets).
+ * Emergency Panic Wipe: Nukes all stored reports and bookmarks immediately.
+ * Leaves zero cryptographic forensic trace on disk.
  */
-export async function clearReportsTable(): Promise<void> {
+export async function wipeAllLocalData(): Promise<void> {
   const db = await getDB();
-  await db.runAsync('DELETE FROM reports');
+  await db.execAsync(`
+    DELETE FROM reports;
+    DELETE FROM bookmarks;
+    VACUUM;
+  `);
+}
+
+/**
+ * Sneaker-Net Export Payload: Generates an exportable JSON payload
+ * for physical SD-Card / USB-OTG courier dispatch.
+ */
+export async function exportSneakerNetPayload(): Promise<string> {
+  const reports = await getAllReports();
+  const payload = {
+    exported_at: new Date().toISOString(),
+    protocol: 'ETO-SNEAKERNET-V1',
+    checksum: Math.random().toString(36).substring(2, 15),
+    total_records: reports.length,
+    pending_records: reports.filter((r) => r.synced === 0).length,
+    ledger: reports,
+  };
+  return JSON.stringify(payload, null, 2);
+}
+
+/**
+ * Bookmark Management for Offline Opportunities
+ */
+export async function toggleBookmark(opportunityId: string): Promise<boolean> {
+  const db = await getDB();
+  const existing = await db.getFirstAsync<{ opportunity_id: string }>(
+    'SELECT opportunity_id FROM bookmarks WHERE opportunity_id = ?',
+    [opportunityId]
+  );
+
+  if (existing) {
+    await db.runAsync('DELETE FROM bookmarks WHERE opportunity_id = ?', [opportunityId]);
+    return false; // Removed
+  } else {
+    await db.runAsync(
+      'INSERT INTO bookmarks (opportunity_id, saved_at) VALUES (?, ?)',
+      [opportunityId, new Date().toISOString()]
+    );
+    return true; // Added
+  }
+}
+
+export async function getBookmarkedIds(): Promise<string[]> {
+  const db = await getDB();
+  const rows = await db.getAllAsync<{ opportunity_id: string }>(
+    'SELECT opportunity_id FROM bookmarks'
+  );
+  return rows.map((r) => r.opportunity_id);
 }

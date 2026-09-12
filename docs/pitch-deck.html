@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Eto • OSF × Andela Hackathon Pitch Deck</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      background: #0B0F19;
+      color: #F1F5F9;
+      line-height: 1.5;
+    }
+    .slide {
+      width: 100vw;
+      height: 100vh;
+      max-height: 100vh;
+      padding: 60px 80px;
+      display: flex;
+      flex-direction: column;
+      justifyContent: space-between;
+      border-bottom: 2px solid #1E293B;
+      page-break-after: always;
+      position: relative;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1E293B;
+      padding-bottom: 16px;
+    }
+    .logo {
+      font-size: 20px;
+      font-weight: 800;
+      color: #38BDF8;
+      letter-spacing: 1px;
+    }
+    .badge {
+      background: #1E293B;
+      color: #94A3B8;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid #334155;
+    }
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justifyContent: center;
+      margin: 30px 0;
+    }
+    h1 {
+      font-size: 48px;
+      font-weight: 800;
+      color: #FFFFFF;
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+    h2 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #38BDF8;
+      margin-bottom: 24px;
+    }
+    p.lead {
+      font-size: 20px;
+      color: #94A3B8;
+      max-width: 850px;
+      line-height: 1.6;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-top: 20px;
+    }
+    .card {
+      background: #111827;
+      border: 1px solid #1F2937;
+      border-radius: 12px;
+      padding: 24px;
+    }
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #F9FAFB;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-body {
+      font-size: 14px;
+      color: #9CA3AF;
+      line-height: 1.6;
+    }
+    .highlight {
+      color: #38BDF8;
+      font-weight: 700;
+    }
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+    .table th, .table td {
+      padding: 14px 18px;
+      text-align: left;
+      border-bottom: 1px solid #1F2937;
+      font-size: 14px;
+    }
+    .table th {
+      background: #111827;
+      color: #9CA3AF;
+      font-weight: 700;
+    }
+    .table td {
+      color: #E5E7EB;
+    }
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      color: #64748B;
+      font-size: 12px;
+      font-weight: 600;
+      border-top: 1px solid #1E293B;
+      padding-top: 16px;
+    }
+    @media print {
+      body { background: #0B0F19 !important; -webkit-print-color-adjust: exact; }
+      .slide { width: 100vw; height: 100vh; page-break-after: always; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Slide 1 -->
+  <div class="slide">
+    <div class="header">
+      <div class="logo">ETO (ÈTÒ) • CIVIC LEDGER</div>
+      <div class="badge">OSF × ANDELA HACKATHON 2026</div>
+    </div>
+    <div class="content">
+      <h1>Information You Can Trust<br><span style="color:#38BDF8;">Under Physical & Digital Duress</span></h1>
+      <p class="lead">An offline-first, local-ledger React Native application engineered for high-risk checkpoints, 1GB RAM Android Go devices, and rural communities across Northern Nigeria and the Sahel.</p>
+      <div style="margin-top:30px; display:flex; gap:12px;">
+        <span class="badge" style="color:#38BDF8; border-color:#0284C7;">Stability & Social Cohesion</span>
+        <span class="badge" style="color:#4ADE80; border-color:#16A34A;">Transparency & Accountability</span>
+        <span class="badge" style="color:#FBBF24; border-color:#D97706;">Safety & Protection</span>
+      </div>
+    </div>
+    <div class="footer">
+      <span>Track: Cross-Track Innovation</span>
+      <span>Target: Northern Nigeria / Sahel Region</span>
+    </div>
+  </div>
+
+  <!-- Slide 2 -->
+  <div class="slide">
+    <div class="header">
+      <div class="logo">ETO (ÈTÒ) • CIVIC LEDGER</div>
+      <div class="badge">THE PROBLEM</div>
+    </div>
+    <div class="content">
+      <h2>The Ground Reality in the Sahel</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="card-title">📡 The Sahelian Information Paradox</div>
+          <div class="card-body">Verified civic grants, agricultural input subsidies, and legal aid exist, but rural citizens remain cut off due to zero internet, bureaucratic opacity, and fragmented announcements.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔥 Escalation of Resource Disputes</div>
+          <div class="card-body">Tensions over communal boreholes and pastoralist grazing corridors frequently explode into violence because frontline monitors lack offline early-warning tools.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🪖 Checkpoint Interrogations</div>
+          <div class="card-body">Field monitors carrying phones through military, vigilante, or insurgent checkpoints risk detention or bodily harm if human rights documentation or tension logs are discovered.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">📱 Severe Hardware Poverty</div>
+          <div class="card-body">Monitors use 1GB RAM Android Go devices with intermittent power and aggressive OS battery killers that terminate background sync daemons.</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <span>Problem Identification</span>
+      <span>Slide 2</span>
+    </div>
+  </div>
+
+  <!-- Slide 3 -->
+  <div class="slide">
+    <div class="header">
+      <div class="logo">ETO (ÈTÒ) • CIVIC LEDGER</div>
+      <div class="badge">THE SOLUTION</div>
+    </div>
+    <div class="content">
+      <h2>Four Pillars of the Eto Architecture</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="card-title">🛡️ Checkpoint Decoy & Panic Wipe</div>
+          <div class="card-body">PIN <span class="highlight">1234</span> opens Eto. Duress PIN <span class="highlight">9999</span> launches an authentic Sahel AgriWeather & Grain Market Monitor. Panic PIN <span class="highlight">0000</span> purges the SQLite database instantly.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">📋 Offline Opportunity Engine</div>
+          <div class="card-body">100% offline database matching verified development initiatives with exact physical desks, required slips, and step-by-step claiming protocols in English & Hausa.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">💾 Local SQLite Intake Ledger</div>
+          <div class="card-body">Zero-PII intake for resource conflicts and diverted aid. Automatically generates isolated cryptographic UUIDs and timestamps immune to OS cache purges.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">⚡ Explicit Manual Sync & Sneaker-Net</div>
+          <div class="card-body">Zero background battery drain. Batches records on explicit user action when 2G signal is present, or exports encrypted payloads to SD/USB for physical courier transport.</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <span>Architectural Overview</span>
+      <span>Slide 3</span>
+    </div>
+  </div>
+
+  <!-- Slide 4 -->
+  <div class="slide">
+    <div class="header">
+      <div class="logo">ETO (ÈTÒ) • CIVIC LEDGER</div>
+      <div class="badge">HARDWARE FEASIBILITY</div>
+    </div>
+    <div class="content">
+      <h2>Built for 1GB RAM Android Go Realities</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Standard Mobile Apps</th>
+            <th>Eto Architecture</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Connectivity</strong></td>
+            <td>Requires active 4G/5G connection</td>
+            <td><span class="highlight">100% Offline-First (SQLite + Bundled JSON)</span></td>
+          </tr>
+          <tr>
+            <td><strong>Battery & Sync</strong></td>
+            <td>Background daemons killed by OS</td>
+            <td><span class="highlight">Zero Background Tasks (Explicit "Sync Now")</span></td>
+          </tr>
+          <tr>
+            <td><strong>Bundle Size</strong></td>
+            <td>60MB - 120MB+</td>
+            <td><span class="highlight">Ultra-lean ~1MB JavaScript Footprint</span></td>
+          </tr>
+          <tr>
+            <td><strong>RAM Usage</strong></td>
+            <td>180MB - 350MB (Crashes Android Go)</td>
+            <td><span class="highlight">Sub-35MB Native Runtime Memory</span></td>
+          </tr>
+          <tr>
+            <td><strong>Language Access</strong></td>
+            <td>English only</td>
+            <td><span class="highlight">Bilingual English & Hausa (Sahel Lingua Franca)</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footer">
+      <span>Technical Feasibility</span>
+      <span>Slide 4</span>
+    </div>
+  </div>
+
+  <!-- Slide 5 -->
+  <div class="slide">
+    <div class="header">
+      <div class="logo">ETO (ÈTÒ) • CIVIC LEDGER</div>
+      <div class="badge">IMPACT & SUMMARY</div>
+    </div>
+    <div class="content">
+      <h2>Transformative Peace in Action</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="card-title">🌍 Stability & Social Cohesion</div>
+          <div class="card-body">Allows early warning of pastoralist-farmer friction over water and grazing rights before violence erupts.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔍 Transparency & Accountability</div>
+          <div class="card-body">Ensures vulnerable communities can independently verify subsidy eligibility and track diverted relief supplies.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🛡️ Safety & Frontline Protection</div>
+          <div class="card-body">Guarantees physical safety for human rights and peace monitors facing aggressive checkpoint interrogations.</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🚀 Scalable Architecture</div>
+          <div class="card-body">Ready for deployment across the Sahel (Niger, Chad, Mali, Burkina Faso) and East Africa with simple JSON updates.</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <span>Conclusion & OSF Alignment</span>
+      <span>Slide 5</span>
+    </div>
+  </div>
+
+</body>
+</html>
