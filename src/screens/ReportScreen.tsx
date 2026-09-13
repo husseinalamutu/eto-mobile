@@ -15,7 +15,7 @@ import {
 import { ReportCategory, ReportSeverity, Language } from '../types';
 import { translations } from '../i18n/translations';
 import { insertReport } from '../db';
-import { NORTHERN_NIGERIA_LOCATIONS } from '../data/lgaData';
+import { NIGERIA_LOCATIONS } from '../data/lgaData';
 
 interface ReportScreenProps {
   language: Language;
@@ -57,14 +57,21 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ language, onReportSu
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string>('');
 
+  // Location Picker Modal State
+  const [locationModalVisible, setLocationModalVisible] = useState<boolean>(false);
+
   // Confirmation Modal
   const [confirmationVisible, setConfirmationVisible] = useState<boolean>(false);
   const [submittedReportId, setSubmittedReportId] = useState<string>('');
   const [submittedTimestamp, setSubmittedTimestamp] = useState<string>('');
 
-  const currentState = NORTHERN_NIGERIA_LOCATIONS[selectedStateIndex];
+  const currentState = NIGERIA_LOCATIONS[selectedStateIndex];
   const currentLGA = currentState.lgas[selectedLGAIndex];
   const currentWard = currentLGA.wards[selectedWardIndex];
+
+  const formattedLocation = `${currentWard}, ${currentLGA.name}, ${currentState.state}${
+    specificLandmark.trim() ? ` (${specificLandmark.trim()})` : ''
+  }`;
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
@@ -75,12 +82,8 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ language, onReportSu
   const handleSubmit = async () => {
     setFormError('');
 
-    const formattedLocation = `${currentWard}, ${currentLGA.name} LGA, ${currentState.state}${
-      specificLandmark.trim() ? ` (${specificLandmark.trim()})` : ''
-    }`;
-
-    if (!description.trim() || description.trim().length < 15) {
-      setFormError('Please detail what occurred (minimum 15 characters).');
+    if (!description.trim() || description.trim().length < 10) {
+      setFormError('Please detail what occurred (minimum 10 characters).');
       return;
     }
 
@@ -125,15 +128,18 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ language, onReportSu
         style={{ flex: 1 }}
       >
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+          {/* Header */}
           <View style={styles.header}>
             <Text style={styles.screenHeading}>{t.reportHeading}</Text>
             <Text style={styles.screenSubheading}>{t.reportSubheading}</Text>
           </View>
 
-          {/* Anonymity Banner */}
+          {/* Anonymity Shield Banner */}
           <View style={styles.securityBanner}>
-            <Text style={styles.securityTitle}>{t.anonymityBannerTitle}</Text>
-            <Text style={styles.securityText}>{t.anonymityBannerText}</Text>
+            <Text style={styles.securityTitle}>🛡️ ZERO-TRACE CIVIC ANONYMITY</Text>
+            <Text style={styles.securityText}>
+              Device identifiers, phone numbers, and coordinates are excluded. Identified solely by a decentralized cryptographic hash.
+            </Text>
           </View>
 
           {formError ? (
@@ -142,16 +148,51 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ language, onReportSu
             </View>
           ) : null}
 
-          {/* Category Picker */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.fieldLabel}>{t.fieldCategory}</Text>
+          {/* Section 1: Location Selector */}
+          <View style={styles.cardSection}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionLabel}>{t.fieldLocation}</Text>
+              <TouchableOpacity
+                onPress={() => setLocationModalVisible(true)}
+                style={styles.changeLocBtn}
+              >
+                <Text style={styles.changeLocText}>Change</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.locationDisplayBox}
+              onPress={() => setLocationModalVisible(true)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.locationPinIcon}>📍</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.locationStateLga}>
+                  {currentState.state} • {currentLGA.name}
+                </Text>
+                <Text style={styles.locationWard}>{currentWard}</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TextInput
+              style={styles.landmarkInput}
+              placeholder="Optional landmark (e.g. Near Solar Pump #2 or Old Market Bridge)"
+              placeholderTextColor="#64748B"
+              value={specificLandmark}
+              onChangeText={setSpecificLandmark}
+            />
+          </View>
+
+          {/* Section 2: Incident Category */}
+          <View style={styles.cardSection}>
+            <Text style={styles.sectionLabel}>{t.fieldCategory}</Text>
             {CATEGORIES.map((cat) => {
               const isSelected = category === cat.value;
               return (
                 <TouchableOpacity
                   key={cat.value}
                   activeOpacity={0.8}
-                  style={[styles.categoryOption, isSelected && styles.categoryOptionSelected]}
+                  style={[styles.categoryCard, isSelected && styles.categoryCardSelected]}
                   onPress={() => setCategory(cat.value)}
                 >
                   <View style={styles.radioOuter}>
@@ -160,92 +201,54 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ language, onReportSu
                   <View style={{ flex: 1 }}>
                     <Text
                       style={[
-                        styles.categoryOptionTitle,
-                        isSelected && styles.categoryOptionTitleSelected,
+                        styles.categoryTitle,
+                        isSelected && styles.categoryTitleSelected,
                       ]}
                     >
                       {cat.label}
                     </Text>
-                    <Text style={styles.categoryOptionDesc}>{cat.desc}</Text>
+                    <Text style={styles.categoryDesc}>{cat.desc}</Text>
                   </View>
                 </TouchableOpacity>
               );
             })}
           </View>
 
-          {/* Quick LGA / Ward Selector for Northern Nigeria */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.fieldLabel}>{t.fieldLocation}</Text>
-            
-            {/* State Picker */}
-            <Text style={styles.subSelectorLabel}>1. SELECT STATE:</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pillScroll}>
-              {NORTHERN_NIGERIA_LOCATIONS.map((loc, idx) => (
-                <TouchableOpacity
-                  key={loc.state}
-                  style={[styles.locationPill, selectedStateIndex === idx && styles.locationPillActive]}
-                  onPress={() => {
-                    setSelectedStateIndex(idx);
-                    setSelectedLGAIndex(0);
-                    setSelectedWardIndex(0);
-                  }}
-                >
-                  <Text style={[styles.locationPillText, selectedStateIndex === idx && styles.locationPillTextActive]}>
-                    {loc.state}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            {/* LGA Picker */}
-            <Text style={styles.subSelectorLabel}>2. SELECT LGA:</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pillScroll}>
-              {currentState.lgas.map((lga, idx) => (
-                <TouchableOpacity
-                  key={lga.name}
-                  style={[styles.locationPill, selectedLGAIndex === idx && styles.locationPillActive]}
-                  onPress={() => {
-                    setSelectedLGAIndex(idx);
-                    setSelectedWardIndex(0);
-                  }}
-                >
-                  <Text style={[styles.locationPillText, selectedLGAIndex === idx && styles.locationPillTextActive]}>
-                    {lga.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            {/* Ward Picker */}
-            <Text style={styles.subSelectorLabel}>3. SELECT WARD:</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pillScroll}>
-              {currentLGA.wards.map((ward, idx) => (
-                <TouchableOpacity
-                  key={ward}
-                  style={[styles.locationPill, selectedWardIndex === idx && styles.locationPillActive]}
-                  onPress={() => setSelectedWardIndex(idx)}
-                >
-                  <Text style={[styles.locationPillText, selectedWardIndex === idx && styles.locationPillTextActive]}>
-                    {ward}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            {/* Landmark text */}
-            <TextInput
-              style={[styles.textInput, { marginTop: 8 }]}
-              placeholder="Optional landmark (e.g. Near Solar Pump #2 or Old Market Bridge)"
-              placeholderTextColor="#64748B"
-              value={specificLandmark}
-              onChangeText={setSpecificLandmark}
-            />
+          {/* Section 3: Severity Level */}
+          <View style={styles.cardSection}>
+            <Text style={styles.sectionLabel}>{t.fieldSeverity}</Text>
+            <View style={styles.severityRow}>
+              {SEVERITIES.map((s) => {
+                const isSelected = severity === s.value;
+                return (
+                  <TouchableOpacity
+                    key={s.value}
+                    activeOpacity={0.8}
+                    style={[
+                      styles.severityBtn,
+                      isSelected && { borderColor: s.color, backgroundColor: s.color + '22' },
+                    ]}
+                    onPress={() => setSeverity(s.value)}
+                  >
+                    <View style={[styles.severityDot, { backgroundColor: s.color }]} />
+                    <Text
+                      style={[
+                        styles.severityText,
+                        isSelected && { color: '#FFFFFF', fontWeight: '800' },
+                      ]}
+                    >
+                      {s.value}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
 
-          {/* Dispute / Resource Tags */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.fieldLabel}>RESOURCE DISPUTE TAGS</Text>
-            <View style={styles.tagGrid}>
+          {/* Section 4: Resource Tags */}
+          <View style={styles.cardSection}>
+            <Text style={styles.sectionLabel}>DISPUTE / RESOURCE TAGS</Text>
+            <View style={styles.tagsContainer}>
               {RESOURCE_TAGS.map((tag) => {
                 const isSelected = selectedTags.includes(tag);
                 return (
@@ -264,52 +267,22 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ language, onReportSu
             </View>
           </View>
 
-          {/* Severity */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.fieldLabel}>{t.fieldSeverity}</Text>
-            <View style={styles.severityRow}>
-              {SEVERITIES.map((s) => {
-                const isSelected = severity === s.value;
-                return (
-                  <TouchableOpacity
-                    key={s.value}
-                    activeOpacity={0.8}
-                    style={[
-                      styles.severityButton,
-                      isSelected && { borderColor: s.color, backgroundColor: s.color + '22' },
-                    ]}
-                    onPress={() => setSeverity(s.value)}
-                  >
-                    <View style={[styles.severityDot, { backgroundColor: s.color }]} />
-                    <Text
-                      style={[
-                        styles.severityText,
-                        isSelected && { color: '#FFFFFF', fontWeight: '700' },
-                      ]}
-                    >
-                      {s.value}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-
-          {/* Description */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.fieldLabel}>{t.fieldDescription}</Text>
+          {/* Section 5: Description */}
+          <View style={styles.cardSection}>
+            <Text style={styles.sectionLabel}>{t.fieldDescription}</Text>
             <TextInput
-              style={[styles.textInput, styles.textArea]}
+              style={styles.textArea}
               placeholder={t.descPlaceholder}
               placeholderTextColor="#64748B"
               value={description}
               onChangeText={setDescription}
               multiline
-              numberOfLines={5}
+              numberOfLines={4}
               textAlignVertical="top"
             />
           </View>
 
+          {/* Submit Button */}
           <TouchableOpacity
             style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
             onPress={handleSubmit}
@@ -323,10 +296,85 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ language, onReportSu
         </ScrollView>
       </KeyboardAvoidingView>
 
+      {/* Clean Location Selector Modal */}
+      <Modal
+        visible={locationModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setLocationModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.locationModal}>
+            <Text style={styles.locModalTitle}>📍 Select State, LGA & Ward</Text>
+
+            <ScrollView style={{ maxHeight: 380 }}>
+              <Text style={styles.locStepHeader}>1. SELECT STATE</Text>
+              <View style={styles.locChipWrap}>
+                {NIGERIA_LOCATIONS.map((loc, idx) => (
+                  <TouchableOpacity
+                    key={loc.state}
+                    style={[styles.locChoiceChip, selectedStateIndex === idx && styles.locChoiceChipActive]}
+                    onPress={() => {
+                      setSelectedStateIndex(idx);
+                      setSelectedLGAIndex(0);
+                      setSelectedWardIndex(0);
+                    }}
+                  >
+                    <Text style={[styles.locChoiceText, selectedStateIndex === idx && styles.locChoiceTextActive]}>
+                      {loc.state}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={styles.locStepHeader}>2. SELECT LGA</Text>
+              <View style={styles.locChipWrap}>
+                {currentState.lgas.map((lga, idx) => (
+                  <TouchableOpacity
+                    key={lga.name}
+                    style={[styles.locChoiceChip, selectedLGAIndex === idx && styles.locChoiceChipActive]}
+                    onPress={() => {
+                      setSelectedLGAIndex(idx);
+                      setSelectedWardIndex(0);
+                    }}
+                  >
+                    <Text style={[styles.locChoiceText, selectedLGAIndex === idx && styles.locChoiceTextActive]}>
+                      {lga.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={styles.locStepHeader}>3. SELECT WARD</Text>
+              <View style={styles.locChipWrap}>
+                {currentLGA.wards.map((ward, idx) => (
+                  <TouchableOpacity
+                    key={ward}
+                    style={[styles.locChoiceChip, selectedWardIndex === idx && styles.locChoiceChipActive]}
+                    onPress={() => setSelectedWardIndex(idx)}
+                  >
+                    <Text style={[styles.locChoiceText, selectedWardIndex === idx && styles.locChoiceTextActive]}>
+                      {ward}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+
+            <TouchableOpacity
+              style={styles.locModalDoneBtn}
+              onPress={() => setLocationModalVisible(false)}
+            >
+              <Text style={styles.locModalDoneText}>Confirm Location</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* Confirmation Modal */}
       <Modal visible={confirmationVisible} transparent animationType="fade">
         <View style={styles.modalBackdrop}>
-          <View style={styles.modalCard}>
+          <View style={styles.confirmCard}>
             <View style={styles.modalIconBox}>
               <Text style={styles.modalIcon}>💾</Text>
             </View>
@@ -358,15 +406,15 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ language, onReportSu
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#0F172A' },
   scrollView: { flex: 1, backgroundColor: '#0F172A' },
-  scrollContent: { padding: 16, paddingBottom: 40 },
+  scrollContent: { padding: 18, paddingBottom: 40 },
   header: { marginBottom: 12 },
-  screenHeading: { fontSize: 19, fontWeight: '800', color: '#F8FAFC' },
-  screenSubheading: { fontSize: 11, color: '#94A3B8', marginTop: 2 },
+  screenHeading: { fontSize: 20, fontWeight: '900', color: '#F8FAFC' },
+  screenSubheading: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
   securityBanner: {
     backgroundColor: '#1E293B',
     borderRadius: 8,
     padding: 12,
-    marginBottom: 14,
+    marginBottom: 16,
     borderLeftWidth: 4,
     borderLeftColor: '#38BDF8',
     borderWidth: 1,
@@ -378,30 +426,112 @@ const styles = StyleSheet.create({
     backgroundColor: '#450A0A',
     borderRadius: 6,
     padding: 10,
-    marginBottom: 12,
+    marginBottom: 14,
     borderWidth: 1,
     borderColor: '#EF4444',
   },
   errorText: { color: '#FCA5A5', fontSize: 12, fontWeight: '600' },
-  inputGroup: { marginBottom: 16 },
-  fieldLabel: { fontSize: 11, fontWeight: '800', color: '#94A3B8', letterSpacing: 0.8, marginBottom: 6 },
-  subSelectorLabel: { fontSize: 10, fontWeight: '700', color: '#64748B', marginTop: 4, marginBottom: 4 },
-  pillScroll: { marginBottom: 6 },
-  locationPill: {
+  cardSection: {
     backgroundColor: '#1E293B',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
-    marginRight: 6,
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 14,
     borderWidth: 1,
     borderColor: '#334155',
   },
-  locationPillActive: { backgroundColor: '#0284C7', borderColor: '#38BDF8' },
-  locationPillText: { fontSize: 11, fontWeight: '600', color: '#94A3B8' },
-  locationPillTextActive: { color: '#FFFFFF', fontWeight: '700' },
-  tagGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  sectionLabel: { fontSize: 11, fontWeight: '800', color: '#94A3B8', letterSpacing: 0.8, marginBottom: 8 },
+  changeLocBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  changeLocText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#38BDF8',
+  },
+  locationDisplayBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0F172A',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#38BDF8',
+  },
+  locationPinIcon: {
+    fontSize: 20,
+    marginRight: 10,
+  },
+  locationStateLga: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#38BDF8',
+  },
+  locationWard: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginTop: 2,
+  },
+  landmarkInput: {
+    backgroundColor: '#0F172A',
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 12,
+    color: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#334155',
+    marginTop: 10,
+  },
+  categoryCard: {
+    backgroundColor: '#0F172A',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  categoryCardSelected: { borderColor: '#38BDF8', backgroundColor: '#0B2545' },
+  radioOuter: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: '#64748B',
+    marginRight: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#38BDF8' },
+  categoryTitle: { fontSize: 13, fontWeight: '700', color: '#F1F5F9' },
+  categoryTitleSelected: { color: '#38BDF8' },
+  categoryDesc: { fontSize: 11, color: '#94A3B8', marginTop: 2 },
+  severityRow: { flexDirection: 'row', gap: 8 },
+  severityBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    backgroundColor: '#0F172A',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  severityDot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
+  severityText: { fontSize: 12, fontWeight: '700', color: '#94A3B8' },
+  tagsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   tagChip: {
-    backgroundColor: '#1E293B',
+    backgroundColor: '#0F172A',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 6,
@@ -410,35 +540,9 @@ const styles = StyleSheet.create({
   },
   tagChipActive: { backgroundColor: '#1E3A8A', borderColor: '#60A5FA' },
   tagText: { fontSize: 11, color: '#94A3B8' },
-  tagTextActive: { color: '#93C5FD', fontWeight: '700' },
-  categoryOption: {
-    backgroundColor: '#1E293B',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 6,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  categoryOptionSelected: { borderColor: '#38BDF8', backgroundColor: '#0B2545' },
-  radioOuter: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#64748B',
-    marginRight: 8,
-    marginTop: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#38BDF8' },
-  categoryOptionTitle: { fontSize: 12, fontWeight: '700', color: '#F1F5F9' },
-  categoryOptionTitleSelected: { color: '#38BDF8' },
-  categoryOptionDesc: { fontSize: 10, color: '#94A3B8', marginTop: 2, lineHeight: 14 },
-  textInput: {
-    backgroundColor: '#1E293B',
+  tagTextActive: { color: '#93C5FD', fontWeight: '800' },
+  textArea: {
+    backgroundColor: '#0F172A',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -446,33 +550,19 @@ const styles = StyleSheet.create({
     color: '#F8FAFC',
     borderWidth: 1,
     borderColor: '#334155',
+    height: 90,
   },
-  textArea: { height: 100 },
-  severityRow: { flexDirection: 'row', gap: 6 },
-  severityButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    backgroundColor: '#1E293B',
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  severityDot: { width: 6, height: 6, borderRadius: 3, marginRight: 5 },
-  severityText: { fontSize: 11, fontWeight: '600', color: '#94A3B8' },
   submitButton: {
     backgroundColor: '#0284C7',
     borderRadius: 8,
-    paddingVertical: 13,
+    paddingVertical: 14,
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 4,
     borderWidth: 1,
     borderColor: '#38BDF8',
   },
   submitButtonDisabled: { opacity: 0.6 },
-  submitButtonText: { fontSize: 13, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.5 },
+  submitButtonText: { fontSize: 14, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.5 },
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.85)',
@@ -480,7 +570,68 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
-  modalCard: {
+  locationModal: {
+    backgroundColor: '#1E293B',
+    borderRadius: 12,
+    padding: 18,
+    width: '100%',
+    maxWidth: 360,
+    borderWidth: 1,
+    borderColor: '#38BDF8',
+  },
+  locModalTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 12,
+  },
+  locStepHeader: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#94A3B8',
+    marginTop: 10,
+    marginBottom: 6,
+    letterSpacing: 0.5,
+  },
+  locChipWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  locChoiceChip: {
+    backgroundColor: '#0F172A',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  locChoiceChipActive: {
+    backgroundColor: '#0284C7',
+    borderColor: '#38BDF8',
+  },
+  locChoiceText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#94A3B8',
+  },
+  locChoiceTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+  },
+  locModalDoneBtn: {
+    backgroundColor: '#0284C7',
+    paddingVertical: 10,
+    borderRadius: 6,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  locModalDoneText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 13,
+  },
+  confirmCard: {
     backgroundColor: '#1E293B',
     borderRadius: 12,
     padding: 18,

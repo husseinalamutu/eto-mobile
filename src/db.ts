@@ -33,6 +33,11 @@ export async function initDatabase(): Promise<void> {
       opportunity_id TEXT PRIMARY KEY,
       saved_at TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS config (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
   `);
 }
 
@@ -166,4 +171,40 @@ export async function getBookmarkedIds(): Promise<string[]> {
     'SELECT opportunity_id FROM bookmarks'
   );
   return rows.map((r) => r.opportunity_id);
+}
+
+/**
+ * Configuration & User Authentication Store
+ */
+export async function getConfig(key: string, defaultValue: string): Promise<string> {
+  const db = await getDB();
+  const row = await db.getFirstAsync<{ value: string }>(
+    'SELECT value FROM config WHERE key = ?',
+    [key]
+  );
+  return row?.value ?? defaultValue;
+}
+
+export async function setConfig(key: string, value: string): Promise<void> {
+  const db = await getDB();
+  await db.runAsync(
+    'INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)',
+    [key, value]
+  );
+}
+
+export async function getUserPin(): Promise<string> {
+  return await getConfig('user_pin', '1234');
+}
+
+export async function setUserPin(newPin: string): Promise<void> {
+  await setConfig('user_pin', newPin);
+}
+
+export async function getDuressPin(): Promise<string> {
+  return await getConfig('duress_pin', '9999');
+}
+
+export async function setDuressPin(newPin: string): Promise<void> {
+  await setConfig('duress_pin', newPin);
 }

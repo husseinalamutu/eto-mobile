@@ -15,26 +15,17 @@ interface DecoyScreenProps {
 }
 
 const REGIONS = [
-  { name: 'Kano', temp: '39°C', condition: 'Dry Haze & Harmattan Dust', humidity: '14%', wind: '19 km/h NE' },
-  { name: 'Maiduguri', temp: '41°C', condition: 'Severe Heat & Sandy Wind', humidity: '11%', wind: '22 km/h E' },
+  { name: 'Kano', temp: '39°C', condition: 'Dry Haze & Harmattan Wind', humidity: '14%', wind: '19 km/h NE' },
+  { name: 'Maiduguri', temp: '41°C', condition: 'Severe Heat & Dry Breeze', humidity: '11%', wind: '22 km/h E' },
   { name: 'Sokoto', temp: '40°C', condition: 'Intense Sunlight & Aridity', humidity: '12%', wind: '16 km/h NE' },
   { name: 'Kaduna', temp: '34°C', condition: 'Partly Cloudy & Dry Breeze', humidity: '26%', wind: '14 km/h N' },
 ];
 
 const COMMODITIES = [
-  { name: 'White Maize (Masara)', unitPrice: 78500, priceStr: '₦78,500', market: 'Dawanau Market, Kano', change: '+2.1%', trend: 'up' },
-  { name: 'Brown Sorghum (Dawa)', unitPrice: 82000, priceStr: '₦82,000', market: 'Dawanau Market, Kano', change: '-0.5%', trend: 'down' },
-  { name: 'Pearl Millet (Maiwa)', unitPrice: 75000, priceStr: '₦75,000', market: 'Monday Market, Maiduguri', change: '0.0%', trend: 'flat' },
-  { name: 'White Cowpeas (Wake)', unitPrice: 118000, priceStr: '₦118,000', market: 'Kafanchan Market, Kaduna', change: '+4.3%', trend: 'up' },
-  { name: 'Soya Beans (Waken Soya)', unitPrice: 94000, priceStr: '₦94,000', market: 'Dawanau Market, Kano', change: '-1.2%', trend: 'down' },
-  { name: 'Unshelled Groundnut (Gyaɗa)', unitPrice: 62000, priceStr: '₦62,000', market: 'Funtua Market, Katsina', change: '+1.8%', trend: 'up' },
-];
-
-const MARKET_DAYS = [
-  { market: 'Dawanau Grains Market (Kano)', day: 'Every Thursday', focus: 'West Africa Wholesale Hub' },
-  { market: 'Maiduguri Monday Market', day: 'Every Monday', focus: 'Lake Chad Basin Livestock & Grain' },
-  { market: 'Funtua Regional Market (Katsina)', day: 'Every Friday', focus: 'Cotton, Maize & Groundnut' },
-  { market: 'Kachia Central Market (Kaduna)', day: 'Every Saturday', focus: 'Ginger & Agro-Pastoral Trade' },
+  { name: 'White Maize (Masara)', unitPrice: 78500, priceStr: '₦78,500', market: 'Dawanau Grain Market, Kano', change: '+2.1%', isUp: true },
+  { name: 'Brown Sorghum (Dawa)', unitPrice: 82000, priceStr: '₦82,000', market: 'Dawanau Grain Market, Kano', change: '-0.5%', isUp: false },
+  { name: 'Pearl Millet (Maiwa)', unitPrice: 75000, priceStr: '₦75,000', market: 'Monday Market, Maiduguri', change: '0.0%', isUp: null },
+  { name: 'White Cowpeas (Wake)', unitPrice: 118000, priceStr: '₦118,000', market: 'Kafanchan Market, Kaduna', change: '+4.3%', isUp: true },
 ];
 
 export const DecoyScreen: React.FC<DecoyScreenProps> = ({ onLock }) => {
@@ -49,37 +40,37 @@ export const DecoyScreen: React.FC<DecoyScreenProps> = ({ onLock }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#14532D" />
+      <StatusBar barStyle="light-content" backgroundColor="#041A0F" />
 
-      {/* Disguised Extension Header */}
+      {/* Top Header: High-Contrast Forest Header */}
       <View style={styles.topHeader}>
         <View style={{ flex: 1 }}>
           <Text style={styles.brandTitle}>🌾 Sahel AgriWeather & Grain Bulletin</Text>
-          <Text style={styles.brandSubtitle}>NAERLS Agro-Extension & Market Monitor (Offline Cache)</Text>
+          <Text style={styles.brandSubtitle}>NAERLS Agro-Extension & Commodity Index</Text>
         </View>
         <TouchableOpacity style={styles.lockButton} onPress={onLock} activeOpacity={0.8}>
-          <Text style={styles.lockButtonText}>Lock</Text>
+          <Text style={styles.lockButtonText}>🔒 Exit</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {/* Radio Broadcast Cache Tag */}
-        <View style={styles.cacheBanner}>
-          <Text style={styles.cacheStatus}>● OFFLINE RADIO WEATHER CACHE VALIDATED</Text>
-          <Text style={styles.cacheTime}>Synced via Sahel Agro-FM broadcast • 06:30 AM</Text>
+        {/* Offline Broadcast Badge */}
+        <View style={styles.cachePill}>
+          <View style={styles.pulseDot} />
+          <Text style={styles.cacheText}>OFFLINE RADIO BROADCAST CACHE VALIDATED</Text>
         </View>
 
-        {/* Region Selector Pills */}
-        <View style={styles.regionPillRow}>
+        {/* Region Selector Chips */}
+        <View style={styles.regionRow}>
           {REGIONS.map((reg, idx) => {
             const isSelected = idx === selectedRegionIndex;
             return (
               <TouchableOpacity
                 key={reg.name}
-                style={[styles.regionPill, isSelected && styles.regionPillActive]}
+                style={[styles.regionChip, isSelected && styles.regionChipActive]}
                 onPress={() => setSelectedRegionIndex(idx)}
               >
-                <Text style={[styles.regionPillText, isSelected && styles.regionPillTextActive]}>
+                <Text style={[styles.regionChipText, isSelected && styles.regionChipTextActive]}>
                   {reg.name}
                 </Text>
               </TouchableOpacity>
@@ -87,122 +78,106 @@ export const DecoyScreen: React.FC<DecoyScreenProps> = ({ onLock }) => {
           })}
         </View>
 
-        {/* Weather Advisory Card */}
+        {/* Weather Card: High Contrast */}
         <View style={styles.weatherCard}>
-          <View style={styles.weatherHeader}>
-            <Text style={styles.weatherLocation}>{currentRegion.name} Agro-Zone</Text>
+          <View style={styles.weatherTop}>
+            <View>
+              <Text style={styles.weatherZone}>{currentRegion.name} Agro-Climatic Zone</Text>
+              <Text style={styles.weatherDesc}>{currentRegion.condition}</Text>
+            </View>
             <Text style={styles.weatherTemp}>{currentRegion.temp}</Text>
           </View>
-          <Text style={styles.weatherCondition}>{currentRegion.condition}</Text>
 
-          <View style={styles.weatherMetrics}>
-            <View style={styles.metricBox}>
-              <Text style={styles.metricLabel}>Air Humidity</Text>
-              <Text style={styles.metricValue}>{currentRegion.humidity}</Text>
+          <View style={styles.metricsRow}>
+            <View style={styles.metricItem}>
+              <Text style={styles.metricLabel}>Humidity</Text>
+              <Text style={styles.metricVal}>{currentRegion.humidity}</Text>
             </View>
-            <View style={styles.metricBox}>
+            <View style={styles.metricDivider} />
+            <View style={styles.metricItem}>
               <Text style={styles.metricLabel}>Wind Vector</Text>
-              <Text style={styles.metricValue}>{currentRegion.wind}</Text>
+              <Text style={styles.metricVal}>{currentRegion.wind}</Text>
             </View>
-            <View style={styles.metricBox}>
+            <View style={styles.metricDivider} />
+            <View style={styles.metricItem}>
               <Text style={styles.metricLabel}>Soil Moisture</Text>
-              <Text style={styles.metricValue}>Low (Dry)</Text>
+              <Text style={styles.metricVal}>Low (Dry)</Text>
             </View>
           </View>
 
-          <View style={styles.advisoryAlert}>
-            <Text style={styles.advisoryAlertText}>
-              ⚠️ Agronomy Bulletin: Severe dry air increases storage beetle vulnerability. Ensure triple hermetic bags for cowpeas.
+          <View style={styles.advisoryBox}>
+            <Text style={styles.advisoryText}>
+              ⚠️ <Text style={{ fontWeight: '800' }}>Agronomy Advisory:</Text> Severe harmattan aridity. Ensure triple hermetic bags for cowpeas to prevent storage weevil infestation.
             </Text>
           </View>
         </View>
 
-        {/* Wholesale Grain Index */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Wholesale Grain Ticker (100kg)</Text>
-          <Text style={styles.sectionBadge}>Benchmark Index</Text>
+        {/* Wholesale Grain Prices */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Wholesale Grain Index (100kg Bag)</Text>
+          <Text style={styles.sectionSub}>Dawanau & Monday Markets</Text>
         </View>
 
-        {COMMODITIES.map((item, idx) => (
-          <TouchableOpacity
-            key={idx}
-            style={[styles.commodityCard, calculatorCropIdx === idx && styles.commodityCardActive]}
-            onPress={() => setCalculatorCropIdx(idx)}
-            activeOpacity={0.8}
-          >
-            <View style={styles.commodityMain}>
-              <Text style={styles.commodityName}>{item.name}</Text>
-              <Text style={styles.commodityMarket}>{item.market}</Text>
-            </View>
-            <View style={styles.commodityPriceBlock}>
-              <Text style={styles.commodityPrice}>{item.priceStr}</Text>
-              <Text
-                style={[
-                  styles.commodityChange,
-                  item.trend === 'up'
-                    ? styles.trendUp
-                    : item.trend === 'down'
-                    ? styles.trendDown
-                    : styles.trendFlat,
-                ]}
-              >
-                {item.change}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        ))}
+        {COMMODITIES.map((item, idx) => {
+          const isSelected = calculatorCropIdx === idx;
+          return (
+            <TouchableOpacity
+              key={idx}
+              style={[styles.commodityCard, isSelected && styles.commodityCardSelected]}
+              onPress={() => setCalculatorCropIdx(idx)}
+              activeOpacity={0.8}
+            >
+              <View style={{ flex: 1 }}>
+                <Text style={styles.commodityName}>{item.name}</Text>
+                <Text style={styles.commodityMarket}>{item.market}</Text>
+              </View>
 
-        {/* Interactive Grain Price Calculator */}
-        <View style={styles.calcCard}>
-          <Text style={styles.calcTitle}>🧮 Grain Batch Cost Estimator</Text>
-          <Text style={styles.calcDesc}>Selected: {selectedCrop.name}</Text>
+              <View style={styles.priceBlock}>
+                <Text style={styles.commodityPrice}>{item.priceStr}</Text>
+                <Text
+                  style={[
+                    styles.commodityChange,
+                    item.isUp === true && styles.changeUp,
+                    item.isUp === false && styles.changeDown,
+                    item.isUp === null && styles.changeFlat,
+                  ]}
+                >
+                  {item.change}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
 
-          <View style={styles.calcRow}>
+        {/* Interactive Batch Price Calculator */}
+        <View style={styles.calcContainer}>
+          <Text style={styles.calcHeader}>🧮 Grain Batch Value Calculator</Text>
+          <Text style={styles.calcSelectedCrop}>Selected: {selectedCrop.name}</Text>
+
+          <View style={styles.calcInputsRow}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.calcLabel}>Number of 100kg Bags:</Text>
+              <Text style={styles.calcInputLabel}>Enter Bags (100kg):</Text>
               <TextInput
-                style={styles.calcInput}
+                style={styles.calcTextInput}
                 keyboardType="numeric"
                 value={quantityBags}
                 onChangeText={setQuantityBags}
+                maxLength={4}
               />
             </View>
-            <View style={styles.calcResultBox}>
-              <Text style={styles.calcResultLabel}>Total Benchmark Value</Text>
-              <Text style={styles.calcResultValue}>₦{calculatedTotal}</Text>
+
+            <View style={styles.calcTotalCard}>
+              <Text style={styles.calcTotalLabel}>Total Benchmark Value</Text>
+              <Text style={styles.calcTotalValue}>₦{calculatedTotal}</Text>
             </View>
           </View>
         </View>
 
-        {/* Regional Market Days Schedule */}
-        <View style={styles.marketDayCard}>
-          <Text style={styles.marketDayTitle}>📅 Regional Wholesale Market Schedule</Text>
-          {MARKET_DAYS.map((m, idx) => (
-            <View key={idx} style={styles.marketDayRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.marketDayName}>{m.market}</Text>
-                <Text style={styles.marketDayFocus}>{m.focus}</Text>
-              </View>
-              <Text style={styles.marketDayBadge}>{m.day}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* Extension Guidelines */}
-        <View style={styles.extensionBox}>
-          <Text style={styles.extensionTitle}>🌾 Grain Silo & Storage Guidelines</Text>
-          <Text style={styles.extensionText}>
-            1. Clean storage bins 14 days before loading harvest.{'\n'}
-            2. Stack bags on wooden pallets 50cm away from stone walls.{'\n'}
-            3. Measure moisture levels every Friday before market shipment.
+        <View style={styles.footerNotice}>
+          <Text style={styles.footerNoticeText}>
+            National Agricultural Extension & Research Liaison Services (NAERLS)
           </Text>
-        </View>
-
-        <View style={styles.footerInfo}>
-          <Text style={styles.footerText}>
-            Federal Ministry of Agriculture & NAERLS Extension Network
-          </Text>
-          <Text style={styles.footerTextSub}>Public Agricultural Information Service (Sahel Region)</Text>
+          <Text style={styles.footerNoticeSub}>Public Agro-Climatic Dissemination Bulletin</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -210,211 +185,298 @@ export const DecoyScreen: React.FC<DecoyScreenProps> = ({ onLock }) => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#052E16' },
+  safeArea: { flex: 1, backgroundColor: '#041A0F' },
   topHeader: {
-    backgroundColor: '#14532D',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    backgroundColor: '#0A2617',
+    paddingHorizontal: 18,
+    paddingVertical: 14,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#166534',
+    borderBottomColor: '#17472C',
   },
-  brandTitle: { fontSize: 15, fontWeight: '800', color: '#F0FDF4' },
-  brandSubtitle: { fontSize: 10, color: '#BBF7D0', marginTop: 2 },
+  brandTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.3,
+  },
+  brandSubtitle: {
+    fontSize: 11,
+    color: '#D1FAE5',
+    marginTop: 2,
+  },
   lockButton: {
-    backgroundColor: '#166534',
+    backgroundColor: '#165330',
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 7,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#22C55E',
-    marginLeft: 8,
+    borderColor: '#34D399',
+    marginLeft: 10,
   },
-  lockButtonText: { fontSize: 12, fontWeight: '700', color: '#FFFFFF' },
-  scrollView: { flex: 1, backgroundColor: '#052E16' },
-  scrollContent: { padding: 16, paddingBottom: 40 },
-  cacheBanner: {
-    backgroundColor: '#14532D',
+  lockButtonText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  scrollView: { flex: 1, backgroundColor: '#041A0F' },
+  scrollContent: { padding: 18, paddingBottom: 40 },
+  cachePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0A2617',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 6,
-    padding: 10,
-    marginBottom: 12,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#22C55E',
+    borderColor: '#17472C',
   },
-  cacheStatus: { fontSize: 11, fontWeight: '800', color: '#86EFAC', letterSpacing: 0.5 },
-  cacheTime: { fontSize: 10, color: '#DCFCE7', marginTop: 2 },
-  regionPillRow: {
+  pulseDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#34D399',
+    marginRight: 8,
+  },
+  cacheText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  regionRow: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 14,
   },
-  regionPill: {
+  regionChip: {
     flex: 1,
-    paddingVertical: 6,
+    paddingVertical: 8,
     alignItems: 'center',
-    backgroundColor: '#064E3B',
+    backgroundColor: '#0C2B1B',
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#047857',
+    borderColor: '#1D4F35',
   },
-  regionPillActive: {
-    backgroundColor: '#22C55E',
-    borderColor: '#86EFAC',
+  regionChipActive: {
+    backgroundColor: '#10B981',
+    borderColor: '#34D399',
   },
-  regionPillText: {
+  regionChipText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#A7F3D0',
+    color: '#D1FAE5',
   },
-  regionPillTextActive: {
-    color: '#052E16',
+  regionChipTextActive: {
+    color: '#041A0F',
+    fontWeight: '900',
   },
   weatherCard: {
-    backgroundColor: '#166534',
+    backgroundColor: '#0C2B1B',
     borderRadius: 10,
-    padding: 16,
-    marginBottom: 16,
+    padding: 18,
+    marginBottom: 18,
     borderWidth: 1,
-    borderColor: '#22C55E',
+    borderColor: '#1D4F35',
   },
-  weatherHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  weatherLocation: { fontSize: 15, fontWeight: '800', color: '#FFFFFF' },
-  weatherTemp: { fontSize: 26, fontWeight: '900', color: '#FEF08A' },
-  weatherCondition: { fontSize: 12, color: '#BBF7D0', marginTop: 3 },
-  weatherMetrics: {
+  weatherTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 12,
-    backgroundColor: '#14532D',
-    borderRadius: 6,
-    padding: 10,
+    alignItems: 'flex-start',
   },
-  metricBox: { alignItems: 'center' },
-  metricLabel: { fontSize: 10, color: '#86EFAC' },
-  metricValue: { fontSize: 12, fontWeight: '800', color: '#FFFFFF', marginTop: 2 },
-  advisoryAlert: {
-    marginTop: 10,
-    backgroundColor: '#052E16',
-    borderRadius: 6,
-    padding: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: '#FBBF24',
+  weatherZone: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
-  advisoryAlertText: { fontSize: 11, color: '#FEF08A', lineHeight: 15 },
-  sectionHeaderRow: {
+  weatherDesc: {
+    fontSize: 12,
+    color: '#D1FAE5',
+    marginTop: 3,
+  },
+  weatherTemp: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#FDE047',
+  },
+  metricsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    backgroundColor: '#061D12',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginTop: 14,
+    borderWidth: 1,
+    borderColor: '#133E28',
   },
-  sectionTitle: { fontSize: 14, fontWeight: '800', color: '#F0FDF4' },
-  sectionBadge: {
+  metricItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  metricDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: '#1D4F35',
+  },
+  metricLabel: {
     fontSize: 10,
-    color: '#86EFAC',
-    backgroundColor: '#14532D',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    color: '#A7F3D0',
+    fontWeight: '600',
+  },
+  metricVal: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginTop: 2,
+  },
+  advisoryBox: {
+    marginTop: 12,
+    backgroundColor: '#061D12',
+    borderRadius: 6,
+    padding: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: '#FDE047',
+  },
+  advisoryText: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    lineHeight: 17,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  sectionSub: {
+    fontSize: 11,
+    color: '#A7F3D0',
   },
   commodityCard: {
-    backgroundColor: '#064E3B',
+    backgroundColor: '#0C2B1B',
     borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
+    padding: 14,
+    marginBottom: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#047857',
+    borderColor: '#1D4F35',
   },
-  commodityCardActive: {
+  commodityCardSelected: {
     borderColor: '#FDE047',
-    backgroundColor: '#08533F',
+    backgroundColor: '#0F3622',
   },
-  commodityMain: { flex: 1, marginRight: 10 },
-  commodityName: { fontSize: 13, fontWeight: '700', color: '#FFFFFF' },
-  commodityMarket: { fontSize: 11, color: '#A7F3D0', marginTop: 2 },
-  commodityPriceBlock: { alignItems: 'flex-end' },
-  commodityPrice: { fontSize: 15, fontWeight: '800', color: '#FEF08A' },
-  commodityChange: { fontSize: 10, fontWeight: '700', marginTop: 2 },
-  trendUp: { color: '#4ADE80' },
-  trendDown: { color: '#F87171' },
-  trendFlat: { color: '#CBD5E1' },
-  calcCard: {
-    backgroundColor: '#14532D',
-    borderRadius: 10,
-    padding: 14,
-    marginVertical: 12,
-    borderWidth: 1,
-    borderColor: '#22C55E',
-  },
-  calcTitle: { fontSize: 14, fontWeight: '800', color: '#FFFFFF' },
-  calcDesc: { fontSize: 11, color: '#BBF7D0', marginTop: 2, marginBottom: 10 },
-  calcRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
-  calcLabel: { fontSize: 10, color: '#86EFAC', fontWeight: '700', marginBottom: 4 },
-  calcInput: {
-    backgroundColor: '#052E16',
-    borderWidth: 1,
-    borderColor: '#22C55E',
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    color: '#FFFFFF',
-    fontWeight: '800',
+  commodityName: {
     fontSize: 14,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
-  calcResultBox: {
-    flex: 1.2,
-    backgroundColor: '#052E16',
+  commodityMarket: {
+    fontSize: 11,
+    color: '#D1FAE5',
+    marginTop: 2,
+  },
+  priceBlock: {
+    alignItems: 'flex-end',
+  },
+  commodityPrice: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#FDE047',
+  },
+  commodityChange: {
+    fontSize: 11,
+    fontWeight: '800',
+    marginTop: 2,
+  },
+  changeUp: { color: '#4ADE80' },
+  changeDown: { color: '#F87171' },
+  changeFlat: { color: '#CBD5E1' },
+  calcContainer: {
+    backgroundColor: '#0A2617',
+    borderRadius: 10,
+    padding: 16,
+    marginTop: 8,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: '#1D4F35',
+  },
+  calcHeader: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  calcSelectedCrop: {
+    fontSize: 12,
+    color: '#D1FAE5',
+    marginTop: 2,
+    marginBottom: 12,
+  },
+  calcInputsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'center',
+  },
+  calcInputLabel: {
+    fontSize: 11,
+    color: '#D1FAE5',
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  calcTextInput: {
+    backgroundColor: '#041A0F',
+    borderWidth: 1,
+    borderColor: '#34D399',
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    color: '#FFFFFF',
+    fontWeight: '900',
+    fontSize: 16,
+  },
+  calcTotalCard: {
+    flex: 1.3,
+    backgroundColor: '#041A0F',
     borderRadius: 6,
     padding: 10,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#86EFAC',
+    borderColor: '#FDE047',
   },
-  calcResultLabel: { fontSize: 9, color: '#86EFAC', fontWeight: '700' },
-  calcResultValue: { fontSize: 16, fontWeight: '900', color: '#FEF08A', marginTop: 2 },
-  marketDayCard: {
-    backgroundColor: '#064E3B',
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#047857',
-  },
-  marketDayTitle: { fontSize: 13, fontWeight: '800', color: '#F0FDF4', marginBottom: 8 },
-  marketDayRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: '#14532D',
-  },
-  marketDayName: { fontSize: 12, fontWeight: '700', color: '#FFFFFF' },
-  marketDayFocus: { fontSize: 10, color: '#A7F3D0', marginTop: 1 },
-  marketDayBadge: {
+  calcTotalLabel: {
     fontSize: 10,
-    fontWeight: '800',
-    color: '#FEF08A',
-    backgroundColor: '#14532D',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
+    color: '#D1FAE5',
+    fontWeight: '700',
   },
-  extensionBox: {
-    backgroundColor: '#14532D',
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 4,
-    borderWidth: 1,
-    borderColor: '#166534',
+  calcTotalValue: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#FDE047',
+    marginTop: 2,
   },
-  extensionTitle: { fontSize: 12, fontWeight: '800', color: '#86EFAC', marginBottom: 4 },
-  extensionText: { fontSize: 11, color: '#D1FAE5', lineHeight: 16 },
-  footerInfo: { marginTop: 16, alignItems: 'center', paddingVertical: 10 },
-  footerText: { fontSize: 10, color: '#6EE7B7', textAlign: 'center' },
-  footerTextSub: { fontSize: 9, color: '#059669', marginTop: 2 },
+  footerNotice: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  footerNoticeText: {
+    fontSize: 11,
+    color: '#D1FAE5',
+    textAlign: 'center',
+  },
+  footerNoticeSub: {
+    fontSize: 10,
+    color: '#6EE7B7',
+    marginTop: 2,
+  },
 });
