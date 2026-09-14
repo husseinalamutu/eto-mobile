@@ -19,6 +19,7 @@ interface LoginScreenProps {
   onTriggerDuress: () => void;
   language: Language;
   onToggleLanguage: () => void;
+  onOpenGuide?: () => void;
 }
 
 const PIN_LENGTH = 4;
@@ -29,6 +30,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   onTriggerDuress,
   language,
   onToggleLanguage,
+  onOpenGuide,
 }) => {
   const [pin, setPin] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -157,13 +159,25 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             })}
           </View>
 
+          {/* Quick PIN Guidance Badge */}
+          <View style={styles.quickPinBadge}>
+            <Text style={styles.quickPinTitle}>🔑 DEFAULT EVALUATION ACCESS PINS</Text>
+            <Text style={styles.quickPinItem}>
+              <Text style={styles.quickPinCode}>1234</Text> = Full Incident Ledger
+            </Text>
+            <Text style={styles.quickPinItem}>
+              <Text style={styles.quickPinCode}>9999</Text> = Stealth Decoy (Maize Prices)
+            </Text>
+            <Text style={styles.quickPinItem}>
+              <Text style={styles.quickPinCode}>0000</Text> = Emergency Wipe & Decoy
+            </Text>
+          </View>
+
           {/* Error Container */}
           <View style={styles.errorContainer}>
             {errorMessage ? (
               <Text style={styles.errorText}>⚠️ {errorMessage}</Text>
-            ) : (
-              <Text style={styles.helperText}>{t.loginHelper}</Text>
-            )}
+            ) : null}
           </View>
         </View>
 
@@ -234,13 +248,24 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
         {/* Footer: Clean & Discrete */}
         <View style={styles.footerRow}>
+          {onOpenGuide && (
+            <TouchableOpacity
+              style={styles.guideButton}
+              onPress={onOpenGuide}
+              activeOpacity={0.7}
+              hitSlop={HIT_SLOP_64}
+            >
+              <Text style={styles.guideButtonText}>📖 View App Guide & Tutorial</Text>
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity
             style={styles.demoGuideButton}
             onPress={() => setShowDemoModal(true)}
             activeOpacity={0.7}
             hitSlop={HIT_SLOP_64}
           >
-            <Text style={styles.demoGuideText}>ℹ️ Evaluator Access Guide</Text>
+            <Text style={styles.demoGuideText}>ℹ️ Security Protocol Details</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -447,6 +472,51 @@ const createStyles = (theme: ThemeTokens, isDark: boolean) => StyleSheet.create(
   footerRow: {
     alignItems: 'center',
     paddingTop: 4,
+  },
+  quickPinBadge: {
+    backgroundColor: theme.secondary,
+    borderWidth: 1,
+    borderColor: theme.border,
+    borderRadius: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginTop: 8,
+    width: '100%',
+    maxWidth: 300,
+    alignItems: 'flex-start',
+  },
+  quickPinTitle: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    fontWeight: '800',
+    color: theme.primary,
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  quickPinItem: {
+    fontFamily: FONTS.mono,
+    fontSize: 10,
+    color: theme.mutedForeground,
+    lineHeight: 14,
+  },
+  quickPinCode: {
+    fontWeight: '800',
+    color: theme.foreground,
+  },
+  guideButton: {
+    backgroundColor: theme.secondary,
+    borderWidth: 1,
+    borderColor: theme.primary,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+    marginBottom: 4,
+  },
+  guideButtonText: {
+    fontSize: 11,
+    color: theme.primary,
+    fontWeight: '700',
+    fontFamily: FONTS.mono,
   },
   demoGuideButton: {
     paddingVertical: 6,

@@ -27,6 +27,7 @@ interface Props {
   onPanicTap?: () => void;
   onLock?: () => void;
   onOpenSpec?: () => void;
+  onOpenGuide?: () => void;
 }
 
 export interface LedgerEntry {
@@ -44,67 +45,95 @@ export interface LedgerEntry {
   risk: 'CRIT' | 'HIGH' | 'MED' | 'LOW';
 }
 
-// Initial baseline field entries if database has newly initialized
+// Nationwide baseline field entries across Nigeria
 const DEFAULT_LEDGER_ENTRIES: LedgerEntry[] = [
   {
     id: 'ENT-0041',
-    category: 'Relief Aid',
-    categoryHA: 'Agaji',
-    title: 'WFP Distribution — Maiduguri Ward 4',
-    titleHA: 'Rabawa WFP — Garin Maiduguri 4',
-    date: '2026-09-12',
+    category: 'Security',
+    categoryHA: 'Tsaro',
+    title: 'Farmer-Herder Corridor Dispute — Bokkos LGA',
+    titleHA: 'Rikicin Manoma da Makiyaya — Bokkos',
+    date: '2026-09-14',
     time: '14:23',
     status: 'pending' as const,
-    location: '12.234°N 13.157°E (Maiduguri)',
-    note: '127 bags diverted. Truck reg. BN-0049-ABJ',
-    noteHA: 'Mun sace jakar 127. Mota BN-0049-ABJ',
+    location: 'Plateau State (Daffo Grazing Area, Bokkos)',
+    note: 'Transit corridor access obstructed by unauthorized barricade. Joint community dialogue committee convened.',
+    noteHA: 'An toshe hanyar kiwo. Kwamitin sulhu yana zama domin warware matsalar.',
     risk: 'HIGH' as const,
   },
   {
     id: 'ENT-0040',
     category: 'Water Points',
     categoryHA: 'Ruwa',
-    title: 'Borehole #7 — Konduga LGA',
-    titleHA: 'Rijiya #7 — Ƙananan Hukumar Konduga',
-    date: '2026-09-12',
+    title: 'Shared Water Point Contested — Guma Agro-Buffer',
+    titleHA: 'Rikicin Mashayar Ruwa — Daudu / Guma',
+    date: '2026-09-13',
     time: '09:11',
     status: 'synced' as const,
-    location: '11.904°N 13.288°E (Konduga)',
-    note: 'Pump seized. Community blocked access since Aug 30.',
-    noteHA: 'An toshe famfo. An katse shiga tun Ogusta 30.',
+    location: 'Benue State (Daudu Cluster, Guma LGA)',
+    note: 'Solar borehole pump seized over user-fee disagreement. Local youth leaders mediating access.',
+    noteHA: 'An dakatar da famfon sola sakamakon rashin jituwa kan kudin aiki.',
     risk: 'MED' as const,
   },
   {
     id: 'ENT-0039',
     category: 'Security',
     categoryHA: 'Tsaro',
-    title: 'Armed Stop — Route B7 / Dikwa Road',
-    titleHA: 'Dakatar da Makamai — Hanyar B7/Dikwa',
-    date: '2026-09-11',
+    title: 'Illegal Armed Transit Tolls — Birnin Gwari Route',
+    titleHA: 'Shingen Makamai a Hanyar Birnin Gwari',
+    date: '2026-09-12',
     time: '17:55',
     status: 'synced' as const,
-    location: '12.017°N 13.904°E (Mafa/Dikwa)',
-    note: '4 armed, plain-clothed. Documents demanded.',
-    noteHA: '4 makami, riguna. An buƙaci takardu.',
+    location: 'Kaduna State (Kuyello Ward, Birnin Gwari)',
+    note: '4 armed actors demanding illicit cash tolls from farm produce transport trucks.',
+    noteHA: 'Wasu mutane dauke da makamai suna karbar kudin haram daga motocin abinci.',
     risk: 'CRIT' as const,
   },
   {
     id: 'ENT-0038',
-    category: 'Land',
-    categoryHA: 'Ƙasa',
-    title: 'Forced eviction — Ngala farming cluster',
-    titleHA: 'Korar da tilastawa — Gonaki Ngala',
-    date: '2026-09-10',
+    category: 'Infrastructure',
+    categoryHA: 'Kayan Aiki',
+    title: 'Artisanal Bunkering Pipeline Tension — Ebubu Corridor',
+    titleHA: 'Gobarar Bututun Mai — Eleme',
+    date: '2026-09-11',
     time: '11:02',
     status: 'synced' as const,
-    location: '12.356°N 14.189°E (Ngala)',
-    note: '23 families. No documentation issued.',
-    noteHA: 'Iyalai 23. Ba\'a bayar da takarda.',
+    location: 'Rivers State (Ebubu Pipeline Zone, Eleme LGA)',
+    note: 'Illegal tap breach caused agricultural soil spill. Community council requesting emergency containment.',
+    noteHA: 'Lalacewar bututun mai ya shafi gonakin al\'umma.',
+    risk: 'CRIT' as const,
+  },
+  {
+    id: 'ENT-0037',
+    category: 'Relief Aid',
+    categoryHA: 'Agaji',
+    title: 'Fertilizer Subsidy Diversion — Bodija Agro-Market',
+    titleHA: 'Karkatar da Takin Tallafi — Bodija',
+    date: '2026-09-10',
+    time: '10:14',
+    status: 'synced' as const,
+    location: 'Oyo State (Bodija Market Ward, Ibadan North)',
+    note: '140 subsidized fertilizer bags diverted into private stores for resale at inflated prices.',
+    noteHA: 'An karkatar da buhunan taki 140 zuwa dakin ajiyar sirri.',
     risk: 'HIGH' as const,
+  },
+  {
+    id: 'ENT-0036',
+    category: 'Land',
+    categoryHA: 'Ƙasa',
+    title: 'Farmland Encroachment & Extortion — Opi Corridor',
+    titleHA: 'Rikicin Gonaki da Haraji — Nsukka',
+    date: '2026-09-09',
+    time: '16:40',
+    status: 'synced' as const,
+    location: 'Enugu State (Opi Agro-Corridor, Nsukka LGA)',
+    note: 'Unauthorized boundary trench dug through community cassava plots without consultation.',
+    noteHA: 'An hako rami ba bisa ka\'ida ba a gonakin rogo na al\'umma.',
+    risk: 'MED' as const,
   },
 ];
 
-const CATEGORIES = ['Relief Aid', 'Water Points', 'Security', 'Land', 'Infrastructure'];
+const CATEGORIES = ['Security', 'Land', 'Water Points', 'Relief Aid', 'Infrastructure'];
 
 export const ReportScreen: React.FC<Props> = ({
   language,
@@ -112,6 +141,7 @@ export const ReportScreen: React.FC<Props> = ({
   onPanicTap,
   onLock,
   onOpenSpec,
+  onOpenGuide,
 }) => {
   const { theme, isDark, riskConfig, statusConfig } = useTheme();
   const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
@@ -395,6 +425,16 @@ export const ReportScreen: React.FC<Props> = ({
           <Text style={styles.syncStatusText}>
             ⬡ OFFLINE · {pendingCount} PENDING
           </Text>
+          {onOpenGuide && (
+            <TouchableOpacity
+              onPress={onOpenGuide}
+              style={styles.guideMiniBtn}
+              activeOpacity={0.7}
+              hitSlop={HIT_SLOP_64}
+            >
+              <Text style={styles.guideMiniBtnText}>📖 GUIDE</Text>
+            </TouchableOpacity>
+          )}
           {onOpenSpec && (
             <TouchableOpacity
               onPress={onOpenSpec}
@@ -421,9 +461,11 @@ export const ReportScreen: React.FC<Props> = ({
       {/* ── Header Row ── */}
       <View style={styles.headerRow}>
         <View style={styles.headerTitleGroup}>
-          <Text style={styles.mainTitle}>{t.tabReport.toUpperCase()}</Text>
+          <Text style={styles.mainTitle}>
+            {t.reportHeading ? t.reportHeading.toUpperCase() : 'NATIONAL INCIDENT LEDGER'}
+          </Text>
           <Text style={styles.subTitle}>
-            NORTHERN LEDGER · {filteredEntries.length} RECORDS
+            NATIONWIDE INCIDENT RECORDS · {filteredEntries.length} ACTIVE
           </Text>
         </View>
 
@@ -434,8 +476,30 @@ export const ReportScreen: React.FC<Props> = ({
           hitSlop={HIT_SLOP_64}
         >
           <Text style={styles.newRecordBtnIcon}>+</Text>
-          <Text style={styles.newRecordBtnText}>NEW</Text>
+          <Text style={styles.newRecordBtnText}>
+            {t.logIncidentBtn || '+ LOG INCIDENT'}
+          </Text>
         </TouchableOpacity>
+      </View>
+
+      {/* ── Contextual Explainer Banner ── */}
+      <View style={styles.explainerBanner}>
+        <View style={styles.explainerBannerHeader}>
+          <Text style={styles.explainerBannerTitle}>📋 ABOUT THIS LEDGER</Text>
+          {onOpenGuide && (
+            <TouchableOpacity
+              onPress={onOpenGuide}
+              style={styles.explainerHelpPill}
+              activeOpacity={0.7}
+              hitSlop={HIT_SLOP_64}
+            >
+              <Text style={styles.explainerHelpPillText}>HOW IT WORKS ℹ</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        <Text style={styles.explainerBannerText}>
+          {t.reportBanner || 'Secure offline record book for logging security complaints, threats, extortion, and early warning alerts across Nigeria. Tap "+ LOG INCIDENT" to record.'}
+        </Text>
       </View>
 
       {/* ── Category Filter Tabs ── */}
@@ -777,6 +841,20 @@ const createStyles = (theme: ThemeTokens, isDark: boolean) => StyleSheet.create(
     color: theme.primary,
     fontWeight: '700',
   },
+  guideMiniBtn: {
+    backgroundColor: theme.secondary,
+    borderWidth: 1,
+    borderColor: theme.primary,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 2,
+  },
+  guideMiniBtnText: {
+    fontFamily: FONTS.mono,
+    fontSize: 8,
+    color: theme.primary,
+    fontWeight: '800',
+  },
   lockMiniBtn: {
     paddingHorizontal: 4,
   },
@@ -790,6 +868,49 @@ const createStyles = (theme: ThemeTokens, isDark: boolean) => StyleSheet.create(
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 10,
+  },
+  explainerBanner: {
+    backgroundColor: theme.secondary,
+    borderWidth: 1,
+    borderColor: theme.border,
+    marginHorizontal: 16,
+    marginTop: 2,
+    marginBottom: 8,
+    padding: 10,
+    borderRadius: 3,
+  },
+  explainerBannerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  explainerBannerTitle: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    fontWeight: '800',
+    color: theme.primary,
+    letterSpacing: 1,
+  },
+  explainerHelpPill: {
+    backgroundColor: theme.card,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 2,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  explainerHelpPillText: {
+    fontFamily: FONTS.mono,
+    fontSize: 8,
+    fontWeight: '700',
+    color: theme.mutedForeground,
+  },
+  explainerBannerText: {
+    fontFamily: FONTS.mono,
+    fontSize: 10,
+    color: theme.mutedForeground,
+    lineHeight: 14,
   },
   headerTitleGroup: {
     flex: 1,

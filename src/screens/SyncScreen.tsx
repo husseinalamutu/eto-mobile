@@ -195,6 +195,14 @@ export const SyncScreen: React.FC<SyncScreenProps> = ({ language, onSyncComplete
           <Text style={styles.screenSubheading}>{t.syncSubheading}</Text>
         </View>
 
+        {/* Explanatory Contextual Banner */}
+        <View style={styles.explainerBanner}>
+          <Text style={styles.explainerBannerTitle}>📡 FIELD BUFFER & OFFLINE UPLINK</Text>
+          <Text style={styles.explainerBannerText}>
+            {t.syncBanner || 'Reports recorded in the field remain encrypted on your phone. Tap "Sync Now" when connected to cellular data or Wi-Fi.'}
+          </Text>
+        </View>
+
         {/* Network Status Pill */}
         <View style={[styles.networkBanner, isOnline ? styles.netOnline : styles.netOffline]}>
           <View style={styles.netInfoLeft}>
@@ -378,9 +386,31 @@ export const SyncScreen: React.FC<SyncScreenProps> = ({ language, onSyncComplete
 const createStyles = (theme: ThemeTokens, isDark: boolean) => StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: theme.background },
   container: { flex: 1, paddingHorizontal: 16, paddingTop: 10 },
-  header: { marginBottom: 10 },
+  header: { marginBottom: 8 },
   screenHeading: { fontSize: 18, fontWeight: '700', color: theme.foreground, fontFamily: FONTS.mono },
   screenSubheading: { fontSize: 11, color: theme.mutedForeground, marginTop: 2, fontFamily: FONTS.mono },
+  explainerBanner: {
+    backgroundColor: theme.secondary,
+    borderWidth: 1,
+    borderColor: theme.border,
+    marginBottom: 10,
+    padding: 10,
+    borderRadius: 6,
+  },
+  explainerBannerTitle: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    fontWeight: '800',
+    color: theme.primary,
+    letterSpacing: 1,
+    marginBottom: 2,
+  },
+  explainerBannerText: {
+    fontFamily: FONTS.mono,
+    fontSize: 10,
+    color: theme.mutedForeground,
+    lineHeight: 14,
+  },
   networkBanner: {
     flexDirection: 'row',
     justifyContent: 'space-between',

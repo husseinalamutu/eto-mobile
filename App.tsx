@@ -23,6 +23,7 @@ import { SyncScreen } from './src/screens/SyncScreen';
 import { DecoyScreen } from './src/screens/DecoyScreen';
 import { DesignSpecScreen } from './src/screens/DesignSpecScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
+import { OnboardingScreen } from './src/screens/OnboardingScreen';
 
 export default function App() {
   return (
@@ -119,12 +120,17 @@ function AppContent() {
 
   const handleLanguageSelect = (selected: Language) => {
     setLanguage(selected);
-    setScreen('secure');
+    setScreen('onboarding');
   };
 
   const handleOpenSpec = () => {
     setPreviousScreen(screen === 'spec' ? 'secure' : screen);
     setScreen(screen === 'spec' ? previousScreen : 'spec');
+  };
+
+  const handleOpenGuide = () => {
+    setPreviousScreen(screen === 'onboarding' ? 'secure' : screen);
+    setScreen(screen === 'onboarding' ? (previousScreen || 'secure') : 'onboarding');
   };
 
   const handleDecoyRestore = () => {
@@ -159,6 +165,17 @@ function AppContent() {
     return <DesignSpecScreen onBack={() => setScreen(previousScreen || 'secure')} />;
   }
 
+  // 1.5. ONBOARDING & FIELD MANUAL SCREEN
+  if (screen === 'onboarding') {
+    return (
+      <OnboardingScreen
+        onComplete={() => setScreen('secure')}
+        language={language}
+        onToggleLanguage={toggleLanguage}
+      />
+    );
+  }
+
   // 2. DECOY SCREEN (Borno Grain & Weather Bulletin)
   if (screen === 'decoy') {
     return (
@@ -177,6 +194,7 @@ function AppContent() {
         onTriggerDuress={handleTriggerDuress}
         language={language}
         onToggleLanguage={toggleLanguage}
+        onOpenGuide={handleOpenGuide}
       />
     );
   }
@@ -218,6 +236,7 @@ function AppContent() {
             language={language}
             onPanicTap={handlePanicTap}
             onOpenSpec={handleOpenSpec}
+            onOpenGuide={handleOpenGuide}
             onLock={handleLock}
             onReportSubmitted={() => {
               refreshPendingCount();
@@ -250,6 +269,15 @@ function AppContent() {
                   <Text style={styles.langPillText}>
                     {language.toUpperCase()}
                   </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={handleOpenGuide}
+                  style={styles.guideMiniBtn}
+                  activeOpacity={0.7}
+                  hitSlop={HIT_SLOP_64}
+                >
+                  <Text style={styles.guideMiniBtnText}>📖 GUIDE</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -301,6 +329,15 @@ function AppContent() {
                   <Text style={styles.langPillText}>
                     {language.toUpperCase()}
                   </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={handleOpenGuide}
+                  style={styles.guideMiniBtn}
+                  activeOpacity={0.7}
+                  hitSlop={HIT_SLOP_64}
+                >
+                  <Text style={styles.guideMiniBtnText}>📖 GUIDE</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -543,6 +580,20 @@ const createStyles = (theme: ThemeTokens, isDark: boolean) =>
       fontSize: 10,
       fontFamily: FONTS.mono,
       fontWeight: '800',
+      color: theme.primary,
+    },
+    guideMiniBtn: {
+      backgroundColor: theme.secondary,
+      borderWidth: 1,
+      borderColor: theme.border,
+      paddingHorizontal: 7,
+      paddingVertical: 3,
+      borderRadius: 2,
+    },
+    guideMiniBtnText: {
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      fontWeight: '700',
       color: theme.primary,
     },
     specMiniBtn: {

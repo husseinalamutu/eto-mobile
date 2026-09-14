@@ -113,6 +113,14 @@ export const OpportunityScreen: React.FC<OpportunityScreenProps> = ({ language }
         <Text style={styles.screenSubheading}>{t.oppSubheading}</Text>
       </View>
 
+      {/* Explanatory Contextual Banner */}
+      <View style={styles.explainerBanner}>
+        <Text style={styles.explainerBannerTitle}>🤝 COMMUNITY PEACE OPPORTUNITIES</Text>
+        <Text style={styles.explainerBannerText}>
+          {t.oppBanner || 'Verified community peace grants, legal aid, agricultural subsidies, and youth vocational programs across Nigerian communities.'}
+        </Text>
+      </View>
+
       {/* Search Bar */}
       <View style={styles.searchWrapper}>
         <TextInput
@@ -361,6 +369,30 @@ const createStyles = (theme: ThemeTokens, isDark: boolean) => StyleSheet.create(
     color: theme.mutedForeground,
     fontSize: 13,
     fontWeight: 'bold',
+  },
+  explainerBanner: {
+    backgroundColor: theme.secondary,
+    borderWidth: 1,
+    borderColor: theme.border,
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 4,
+    padding: 10,
+    borderRadius: 3,
+  },
+  explainerBannerTitle: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    fontWeight: '800',
+    color: theme.primary,
+    letterSpacing: 1,
+    marginBottom: 2,
+  },
+  explainerBannerText: {
+    fontFamily: FONTS.mono,
+    fontSize: 10,
+    color: theme.mutedForeground,
+    lineHeight: 14,
   },
   filterSection: {
     flexDirection: 'row',

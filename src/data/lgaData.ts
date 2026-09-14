@@ -100,6 +100,57 @@ export const NIGERIA_LOCATIONS: LGAOption[] = [
       },
     ],
   },
+  {
+    state: 'Benue',
+    lgas: [
+      {
+        name: 'Makurdi',
+        wards: ['Modern Market Ward', 'North Bank I', 'Fiidi Grazing Zone', 'Wurukum'],
+      },
+      {
+        name: 'Guma (Agro-Buffer Zone)',
+        wards: ['Agasha', 'Daudu Agro-Cluster', 'Nzorov', 'Gbajimba'],
+      },
+      {
+        name: 'Otukpo',
+        wards: ['Otukpo Town East', 'Otukpo Town West', 'Upu', 'Adoka'],
+      },
+    ],
+  },
+  {
+    state: 'Plateau',
+    lgas: [
+      {
+        name: 'Jos North',
+        wards: ['Tudun Wada', 'Ali Kazaure', 'Vwang', 'Nasarawa Gwong'],
+      },
+      {
+        name: 'Bokkos (Farmer-Herder Interface)',
+        wards: ['Bokkos Central', 'Daffo Grazing Area', 'Richa', 'Mushere'],
+      },
+      {
+        name: 'Barkin Ladi',
+        wards: ['Heipang', 'Gwol', 'Fan', 'Ropp Mining Corridor'],
+      },
+    ],
+  },
+  {
+    state: 'Rivers',
+    lgas: [
+      {
+        name: 'Port Harcourt',
+        wards: ['Mile 1 Market', 'Diobu Mile 3', 'Old GRA', 'Borokiri Waterfront'],
+      },
+      {
+        name: 'Eleme (Petrochemical & Pipeline Belt)',
+        wards: ['Alesa Refinery Zone', 'Alode', 'Ogale', 'Ebubu Pipeline Corridor'],
+      },
+      {
+        name: 'Khana / Bori (Ogoni)',
+        wards: ['Bori Urban I', 'Bori Urban II', 'Kono Coastal Ward', 'Zaakpon'],
+      },
+    ],
+  },
 ];
 
 // Backward-compatible alias

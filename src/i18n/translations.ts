@@ -84,6 +84,16 @@ export interface TranslationDictionary {
   sevLow: string;
   sevMed: string;
   sevCrit: string;
+
+  // New Clarity & Onboarding Keys
+  logIncidentBtn: string;
+  reportBanner: string;
+  decoyBannerTitle: string;
+  decoyBannerAction: string;
+  oppBanner: string;
+  syncBanner: string;
+  onboardingBtn: string;
+  onboardingTitle: string;
 }
 
 export const translations: Record<Language, TranslationDictionary> = {
@@ -93,20 +103,20 @@ export const translations: Record<Language, TranslationDictionary> = {
     quickLock: '🔒 LOCK',
     
     tabOpportunities: 'Opportunities',
-    tabReport: 'File Incident',
+    tabReport: 'Incident Ledger',
     tabSync: 'Sync Engine',
     
     loginTitle: 'System Security Access',
     loginSubtitle: 'Enter terminal PIN to authenticate device session',
-    loginHelper: 'Protected by Local Cryptographic Enclave',
+    loginHelper: 'Default PIN: 1234 (Unlock) · 9999 (Decoy) · 0000 (Wipe)',
     loginInvalid: 'Invalid PIN. Please try again.',
     loginNotice: 'FIELD SECURITY PROTOCOLS',
     loginRealPin: '• Real Access PIN: 1234 (Full Ledger)',
     loginDuressPin: '• Duress Checkpoint PIN: 9999 (Decoy Screen)',
     loginWipePin: '• Emergency Panic Wipe: 0000 (Purges SQLite & Closes)',
 
-    oppHeading: 'Offline Opportunity Engine',
-    oppSubheading: 'Pre-cached civic grants, input subsidies & legal aid',
+    oppHeading: 'Peace & Civic Opportunities',
+    oppSubheading: 'Pre-cached civic grants, input subsidies & legal aid across Nigeria',
     searchPlaceholder: 'Search by keyword, ward, or resource...',
     filterState: 'STATE:',
     filterType: 'TYPE:',
@@ -121,8 +131,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     noOppTitle: 'No matching opportunities',
     noOppSub: 'Adjust your filters or clear your search term to see cached listings.',
 
-    reportHeading: 'Civic Incident Intake',
-    reportSubheading: 'Zero-PII local SQLite ledger. Immune to network outages and checkpoint searches.',
+    reportHeading: 'National Incident Ledger',
+    reportSubheading: 'Zero-PII local SQLite ledger for early warning and conflict mitigation across Nigeria.',
     anonymityBannerTitle: '🛡️ ZERO-TRACE CIVIC ANONYMITY',
     anonymityBannerText: 'IMEI, phone numbers, GPS coordinates, and personal identifiers are strictly excluded. Reports are identified solely by a decentralized cryptographic hash.',
     fieldCategory: 'INCIDENT CATEGORY',
@@ -164,6 +174,15 @@ export const translations: Record<Language, TranslationDictionary> = {
     sevLow: 'Low (Observation)',
     sevMed: 'Medium (Active Friction)',
     sevCrit: 'Critical (Danger)',
+
+    logIncidentBtn: '+ LOG INCIDENT',
+    reportBanner: '📋 Incident Ledger: A secure offline record book for logging security complaints, armed threats, extortion, and early warning alerts across Nigeria. Tap "+ LOG INCIDENT" to record a complaint.',
+    decoyBannerTitle: '🛡️ STEALTH DECOY ACTIVE (Checkpoint Camouflage)',
+    decoyBannerAction: 'Disguised as market grain prices. Tap here or hold bottom-left 2s to return to Incident Ledger.',
+    oppBanner: '🤝 Community Opportunities: Verified peacebuilding grants, legal aid, agricultural subsidies, and youth vocational programs across Nigerian communities.',
+    syncBanner: '📡 Offline Sync Terminal: Reports recorded in the field remain encrypted on your phone. Tap "Sync Now" when connected to cellular data or Wi-Fi.',
+    onboardingBtn: '📖 GUIDE',
+    onboardingTitle: 'ÈTÒ Field Guide & Tutorial',
   },
 
   ha: {
@@ -243,6 +262,15 @@ export const translations: Record<Language, TranslationDictionary> = {
     sevLow: 'Kadan (Lura kawai)',
     sevMed: 'Matsakaici (Akwai Tashin Hankali)',
     sevCrit: 'Mai Tsanani (Hatsari na Nan Take)',
+
+    logIncidentBtn: '+ BADA RAHOTO',
+    reportBanner: '📋 Rijistar Al\'umma: Wurin rubuta rahoton tsaro, barazana, da alamun rikici ba tare da intanet ba. Danna "+ BADA RAHOTO" domin aikawa.',
+    decoyBannerTitle: '🛡️ BOYAYYEN ALLON NOMA (Kariya a Shinge)',
+    decoyBannerAction: 'Kariyar shinge da allon farashin hatsi. Danna nan ko danna kusurwa kasa na daƙiƙa 2 domin komawa rijistar tsaro.',
+    oppBanner: '🤝 Damarmakin Al\'umma: Tabbatar da tallafin zaman lafiya, agajin lauyoyi, da koyon sana\'o\'in matasa a fadin Najeriya.',
+    syncBanner: '📡 Cibiyar Tura Bayanai: Rahotannin da aka rubuta suna ajiye a wayarka. Danna "Tura Bayanai Yanzu" idan ka samu intanet.',
+    onboardingBtn: '📖 JAGORA',
+    onboardingTitle: 'Jagoran Manhajar ÈTÒ',
   },
 
   yo: {
@@ -322,6 +350,15 @@ export const translations: Record<Language, TranslationDictionary> = {
     sevLow: 'Kékeré (Wíwo lásán)',
     sevMed: 'Alábọ́dé (Inú ń ru)',
     sevCrit: 'Pàjáwìrì (Ewu wà lẹ́sẹ̀kẹsẹ̀)',
+
+    logIncidentBtn: '+ FI ẸSUN RANṢẸ',
+    reportBanner: '📋 Àkọọ́lẹ̀ Ìlú: Ìwé àpamọ́ tí kò lo íńtánẹ́ẹ̀tì láti kọ ẹsun àbò, ìhalẹ̀mọ́ni, àti àwọn àfihàn rogbodiyan ní Nàìjíríà. Tẹ "+ FI ẸSUN RANṢẸ" láti kọ ọ́ sílẹ̀.',
+    decoyBannerTitle: '🛡️ OJÚ ÈTÒ ÀGBẸ̀ AṢỌ̀RỌ̀ (Àbò ní Checkpoint)',
+    decoyBannerAction: 'Ojú ewe yìí fi ara pamọ́ bí iye oúnjẹ ọjà. Tẹ ibí yìí tàbí tẹ igun ìsàlẹ̀ fún ìṣẹ́jú-àáyá 2 láti padà sí Àkọọ́lẹ̀ Ẹsun.',
+    oppBanner: '🤝 Àwọn Àǹfààní Àwùjọ: Àwọn ètò ìrànwọ́ àlàáfíà, àbò ti òfin, àti ẹ̀kọ́ iṣẹ́-ọwọ́ fún àwọn ọ̀dọ́ káàkiri Nàìjíríà.',
+    syncBanner: '📡 Ẹ̀rọ Ìfiránṣẹ́ Fúnra Ẹni: Àwọn ẹsun tí a kọ sílẹ̀ wà ní dídábòbò lórí foonu rẹ. Tẹ "Ránṣẹ́ Nísinsìnyí" nígbà tí íńtánẹ́ẹ̀tì bá wà.',
+    onboardingBtn: '📖 ÌTỌ́NI',
+    onboardingTitle: 'Ìtọ́ni & Ìkẹ́kọ̀ọ́ ÈTÒ',
   },
 
   ig: {
@@ -401,6 +438,15 @@ export const translations: Record<Language, TranslationDictionary> = {
     sevLow: 'Dị Ala (Nlele nkịtị)',
     sevMed: 'Ọkara (Esemokwu na-amalite)',
     sevCrit: 'Dị Oké Mkpa (Ihe ize ndụ ozugbo)',
+
+    logIncidentBtn: '+ TINYE MKPESA',
+    reportBanner: '📋 Akwụkwọ Ndekọ Obodo: Ebe echekwara enweghị mkpa ịntanetị maka idekọ mkpesa nchekwa, egwu, na esemokwu na Naịjirịa. Pịa "+ TINYE MKPESA" iji zipu.',
+    decoyBannerTitle: '🛡️ IHU AHỊA NCHEKWA (Mkpuchi na Checkpoint)',
+    decoyBannerAction: 'Ihu a na-egosipụta ọnụ ahịa ọka. Pịa ebe a ma ọ bụ jide akụkụ ala maka sekọnd 2 iji laghachi na Ndekọ Mkpesa.',
+    oppBanner: '🤝 Ohere Obodo: Enyemaka udo obodo, nchekwa iwu, mmemme ọrụ ugbo, na ọzụzụ nka ndị ntorobịa na Naịjirịa.',
+    syncBanner: '📡 Ebe Nzipu Ozi: A na-echekwa mkpesa niile na ekwentị gị. Pịa "Ziga Ugbu A" mgbe ịntanetị dị.',
+    onboardingBtn: '📖 NDỤMỌDỤ',
+    onboardingTitle: 'Ntuziaka & Ọzụzụ ÈTÒ',
   },
 
   fr: {
@@ -414,7 +460,7 @@ export const translations: Record<Language, TranslationDictionary> = {
 
     loginTitle: 'Accès Sécurisé au Registre',
     loginSubtitle: 'Enclave chiffrée hors-ligne · Terminal civique du Sahel',
-    loginHelper: 'Saisissez votre code PIN à 4 chiffres',
+    loginHelper: 'PIN par défaut: 1234 (Déverrouiller) · 9999 (Leurre) · 0000 (Purge)',
     loginInvalid: 'Code PIN invalide. Réessayez.',
     loginNotice: 'AVIS DE SÉCURITÉ AU POINT DE CONTRÔLE',
     loginRealPin: 'PIN Réel (1234): Ouvre le registre citoyen complet',
@@ -428,7 +474,7 @@ export const translations: Record<Language, TranslationDictionary> = {
     filterType: 'DOMAINE',
     verifiedTag: '✓ Vérifié:',
     offlineTag: 'Accessible Hors-Ligne',
-    claimProtocol: 'PROTOCOLE D\'ACCÈS ET DÉMARCHES',
+    claimProtocol: 'PROTOCOLE DE RÉCLAMATION',
     viewAll: 'Voir Tout',
     collapse: 'Réduire',
     bookmark: 'Favori',
@@ -437,8 +483,8 @@ export const translations: Record<Language, TranslationDictionary> = {
     noOppTitle: 'Aucune opportunité trouvée',
     noOppSub: 'Modifiez vos filtres ou vos termes de recherche.',
 
-    reportHeading: 'Enregistrement d\'Incident Terrain',
-    reportSubheading: 'Registre local SQLite · Aucune donnée d\'identité collectée',
+    reportHeading: 'Registre National des Incidents',
+    reportSubheading: 'Registre local SQLite · Alerte précoce et prévention des conflits au Nigéria.',
     anonymityBannerTitle: '🛡️ PROTECTION TOTALE DE L\'ANONYMAT',
     anonymityBannerText: 'Aucun identifiant d\'appareil (IMEI), numéro ou métadonnée personnelle n\'est capturé. Chaque rapport reçoit un identifiant cryptographique aléatoire.',
     fieldCategory: 'CATÉGORIE D\'INCIDENT',
@@ -480,5 +526,14 @@ export const translations: Record<Language, TranslationDictionary> = {
     sevLow: 'Faible (Observation de routine)',
     sevMed: 'Moyen (Tension naissante)',
     sevCrit: 'Critique (Risque violent immédiat)',
+
+    logIncidentBtn: '+ SIGNALER INCIDENT',
+    reportBanner: '📋 Registre des Incidents: Registre local hors-ligne pour consigner les plaintes sécuritaires et alertes précoces au Nigéria. Appuyez sur "+ SIGNALER INCIDENT".',
+    decoyBannerTitle: '🛡️ LEURRE DE SÉCURITÉ ACTIF (Camouflage aux barrages)',
+    decoyBannerAction: 'Camouflé en mercuriale agricole. Appuyez ici ou maintenez le coin inférieur gauche pendant 2s pour revenir au Registre.',
+    oppBanner: '🤝 Opportunités Communautaires: Subventions vérifiées pour la paix, aide juridique et formation professionnelle des jeunes au Nigéria.',
+    syncBanner: '📡 File de Synchronisation: Les rapports consignés sur le terrain restent chiffrés sur votre appareil. Appuyez sur "Transmettre Maintenant" lorsque le réseau est disponible.',
+    onboardingBtn: '📖 GUIDE',
+    onboardingTitle: 'Guide d\'Utilisation & Tutoriel ÈTÒ',
   },
 };
