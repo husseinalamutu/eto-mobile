@@ -14,12 +14,14 @@ import { Opportunity, Language } from '../types';
 import { translations } from '../i18n/translations';
 import { toggleBookmark, getBookmarkedIds } from '../db';
 import opportunitiesData from '../../assets/data/opportunities.json';
+import { TOKENS, FONTS, METRICS, HIT_SLOP_64 } from '../theme/tokens';
+import { FlashList } from '@shopify/flash-list';
 
 interface OpportunityScreenProps {
   language: Language;
 }
 
-const STATES = ['All', 'Kano', 'Kaduna', 'Borno', 'Katsina'];
+const STATES = ['All', 'Kano', 'Kaduna', 'Borno', 'Katsina', 'Oyo', 'Enugu'];
 const CATEGORIES = ['All', 'Agriculture', 'Legal Aid', 'Peace Grant', 'Civic Oversight'];
 
 export const OpportunityScreen: React.FC<OpportunityScreenProps> = ({ language }) => {
@@ -91,13 +93,14 @@ export const OpportunityScreen: React.FC<OpportunityScreenProps> = ({ language }
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#0F172A" />
+      <StatusBar barStyle="light-content" backgroundColor={TOKENS.background} />
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <Text style={styles.screenHeading}>{t.oppHeading}</Text>
+          <Text style={styles.screenHeading}>{t.oppHeading.toUpperCase()}</Text>
           <TouchableOpacity
             style={[styles.bookmarkFilterBtn, showBookmarksOnly && styles.bookmarkFilterBtnActive]}
             onPress={() => setShowBookmarksOnly(!showBookmarksOnly)}
+            hitSlop={HIT_SLOP_64}
           >
             <Text style={[styles.bookmarkFilterText, showBookmarksOnly && styles.bookmarkFilterTextActive]}>
               ⭐ {showBookmarksOnly ? t.bookmarked : t.bookmark} ({bookmarkedIds.length})
@@ -112,7 +115,7 @@ export const OpportunityScreen: React.FC<OpportunityScreenProps> = ({ language }
         <TextInput
           style={styles.searchInput}
           placeholder={t.searchPlaceholder}
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={TOKENS.mutedForeground}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
@@ -175,8 +178,8 @@ export const OpportunityScreen: React.FC<OpportunityScreenProps> = ({ language }
         />
       </View>
 
-      {/* Opportunities List */}
-      <FlatList
+      {/* Opportunities List (1GB RAM & Android Go Optimized) */}
+      <FlashList
         data={filteredOpportunities}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
@@ -201,6 +204,7 @@ export const OpportunityScreen: React.FC<OpportunityScreenProps> = ({ language }
                 <TouchableOpacity
                   style={styles.bookmarkIconButton}
                   onPress={() => handleToggleBookmark(item.id)}
+                  hitSlop={HIT_SLOP_64}
                 >
                   <Text style={styles.bookmarkIconText}>{isBookmarked ? '⭐' : '☆'}</Text>
                 </TouchableOpacity>
@@ -218,9 +222,9 @@ export const OpportunityScreen: React.FC<OpportunityScreenProps> = ({ language }
               <View style={styles.stepsContainer}>
                 <View style={styles.stepsHeader}>
                   <Text style={styles.stepsTitle}>
-                    {t.claimProtocol} ({item.actionable_steps.length})
+                    {t.claimProtocol.toUpperCase()} ({item.actionable_steps.length})
                   </Text>
-                  <TouchableOpacity onPress={() => toggleExpand(item.id)}>
+                  <TouchableOpacity onPress={() => toggleExpand(item.id)} hitSlop={HIT_SLOP_64}>
                     <Text style={styles.expandButtonText}>
                       {isExpanded ? t.collapse : t.viewAll}
                     </Text>
@@ -242,22 +246,23 @@ export const OpportunityScreen: React.FC<OpportunityScreenProps> = ({ language }
                   <TouchableOpacity
                     style={styles.moreStepsHint}
                     onPress={() => toggleExpand(item.id)}
+                    hitSlop={HIT_SLOP_64}
                   >
                     <Text style={styles.moreStepsText}>
                       +{item.actionable_steps.length - 2} more steps. Tap to expand.
                     </Text>
                   </TouchableOpacity>
                 )}
+              </View>
 
-                {/* Quick Share SMS Bar */}
-                <View style={styles.actionButtonBar}>
-                  <TouchableOpacity
-                    style={styles.smsShareBtn}
-                    onPress={() => handleShareSMS(item)}
-                  >
-                    <Text style={styles.smsShareText}>📲 {t.shareSMS}</Text>
-                  </TouchableOpacity>
-                </View>
+              <View style={styles.actionButtonBar}>
+                <TouchableOpacity
+                  style={styles.smsShareBtn}
+                  onPress={() => handleShareSMS(item)}
+                  hitSlop={HIT_SLOP_64}
+                >
+                  <Text style={styles.smsShareText}>📡 {t.shareSMS}</Text>
+                </TouchableOpacity>
               </View>
             </View>
           );
@@ -265,7 +270,9 @@ export const OpportunityScreen: React.FC<OpportunityScreenProps> = ({ language }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyTitle}>{t.noOppTitle}</Text>
-            <Text style={styles.emptySub}>{t.noOppSub}</Text>
+            <Text style={styles.emptySub}>
+              {t.noOppSub}
+            </Text>
           </View>
         }
       />
@@ -274,72 +281,201 @@ export const OpportunityScreen: React.FC<OpportunityScreenProps> = ({ language }
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#0F172A' },
-  header: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 6 },
-  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  screenHeading: { fontSize: 18, fontWeight: '800', color: '#F8FAFC', flex: 1 },
+  safeArea: {
+    flex: 1,
+    backgroundColor: TOKENS.background,
+  },
+  header: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: TOKENS.border,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  screenHeading: {
+    fontFamily: FONTS.condensed,
+    fontSize: 20,
+    fontWeight: '700',
+    color: TOKENS.primary,
+    letterSpacing: 1,
+  },
+  screenSubheading: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: TOKENS.mutedForeground,
+    marginTop: 2,
+    letterSpacing: 0.5,
+  },
   bookmarkFilterBtn: {
-    backgroundColor: '#1E293B',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    backgroundColor: TOKENS.secondary,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 2,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: TOKENS.border,
   },
   bookmarkFilterBtnActive: {
-    backgroundColor: '#0369A1',
-    borderColor: '#38BDF8',
+    borderColor: TOKENS.primary,
+    backgroundColor: TOKENS.muted,
   },
-  bookmarkFilterText: { fontSize: 11, fontWeight: '700', color: '#94A3B8' },
-  bookmarkFilterTextActive: { color: '#FFFFFF' },
-  screenSubheading: { fontSize: 11, color: '#94A3B8', marginTop: 2 },
-  searchWrapper: { marginHorizontal: 16, marginTop: 6, marginBottom: 6, position: 'relative' },
+  bookmarkFilterText: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    fontWeight: '700',
+    color: TOKENS.mutedForeground,
+  },
+  bookmarkFilterTextActive: {
+    color: TOKENS.primary,
+  },
+  searchWrapper: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    position: 'relative',
+  },
   searchInput: {
-    backgroundColor: '#1E293B',
-    borderRadius: 8,
+    backgroundColor: TOKENS.secondary,
+    borderRadius: 2,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    fontSize: 13,
-    color: '#F8FAFC',
+    fontFamily: FONTS.sans,
+    fontSize: 12,
+    color: TOKENS.foreground,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: TOKENS.border,
   },
-  clearSearchBtn: { position: 'absolute', right: 10, top: 8, padding: 2 },
-  clearSearchText: { color: '#94A3B8', fontSize: 13, fontWeight: 'bold' },
-  filterSection: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, marginVertical: 3 },
-  filterLabel: { fontSize: 10, fontWeight: '800', color: '#64748B', marginRight: 6, minWidth: 40 },
+  clearSearchBtn: {
+    position: 'absolute',
+    right: 24,
+    top: 14,
+    padding: 2,
+  },
+  clearSearchText: {
+    color: TOKENS.mutedForeground,
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  filterSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    marginVertical: 3,
+  },
+  filterLabel: {
+    fontFamily: FONTS.mono,
+    fontSize: 8,
+    fontWeight: '700',
+    color: TOKENS.mutedForeground,
+    marginRight: 6,
+    minWidth: 40,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
   filterChip: {
-    backgroundColor: '#1E293B',
+    backgroundColor: TOKENS.card,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 14,
+    borderRadius: 2,
     marginRight: 6,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: TOKENS.border,
   },
-  filterChipActive: { backgroundColor: '#0284C7', borderColor: '#38BDF8' },
-  filterChipText: { fontSize: 11, fontWeight: '600', color: '#94A3B8' },
-  filterChipTextActive: { color: '#FFFFFF', fontWeight: '700' },
-  listContent: { padding: 16, paddingBottom: 32 },
-  card: {
-    backgroundColor: '#1E293B',
-    borderRadius: 10,
+  filterChipActive: {
+    backgroundColor: TOKENS.primary,
+    borderColor: TOKENS.primary,
+  },
+  filterChipText: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: TOKENS.mutedForeground,
+  },
+  filterChipTextActive: {
+    color: TOKENS.primaryForeground,
+    fontWeight: '700',
+  },
+  listContent: {
     padding: 14,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#334155',
+    paddingBottom: 32,
+    gap: 10,
   },
-  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8, alignItems: 'center' },
-  categoryBadge: { backgroundColor: '#0369A1', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
-  categoryBadgeText: { fontSize: 10, fontWeight: '700', color: '#E0F2FE' },
-  locationBadge: { backgroundColor: '#334155', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
-  locationBadgeText: { fontSize: 10, fontWeight: '600', color: '#CBD5E1' },
-  genderBadge: { backgroundColor: '#701A75', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
-  genderBadgeText: { fontSize: 10, fontWeight: '600', color: '#FDF4FF' },
-  bookmarkIconButton: { marginLeft: 'auto', padding: 2 },
-  bookmarkIconText: { fontSize: 16, color: '#FBBF24' },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: '#F8FAFC', lineHeight: 20 },
-  cardOrg: { fontSize: 11, color: '#38BDF8', fontWeight: '600', marginTop: 3 },
+  card: {
+    backgroundColor: TOKENS.card,
+    borderRadius: 2,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: TOKENS.border,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 8,
+    alignItems: 'center',
+  },
+  categoryBadge: {
+    backgroundColor: TOKENS.secondary,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 2,
+    borderWidth: 1,
+    borderColor: TOKENS.border,
+  },
+  categoryBadgeText: {
+    fontFamily: FONTS.mono,
+    fontSize: 8,
+    fontWeight: '700',
+    color: TOKENS.primary,
+    letterSpacing: 0.5,
+  },
+  locationBadge: {
+    backgroundColor: TOKENS.secondary,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 2,
+    borderWidth: 1,
+    borderColor: TOKENS.border,
+  },
+  locationBadgeText: {
+    fontFamily: FONTS.mono,
+    fontSize: 8,
+    color: TOKENS.mutedForeground,
+  },
+  genderBadge: {
+    backgroundColor: TOKENS.secondary,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 2,
+  },
+  genderBadgeText: {
+    fontFamily: FONTS.mono,
+    fontSize: 8,
+    color: TOKENS.mutedForeground,
+  },
+  bookmarkIconButton: {
+    marginLeft: 'auto',
+    padding: 2,
+  },
+  bookmarkIconText: {
+    fontSize: 16,
+    color: TOKENS.primary,
+  },
+  cardTitle: {
+    fontFamily: FONTS.condensed,
+    fontSize: 15,
+    fontWeight: '700',
+    color: TOKENS.foreground,
+    lineHeight: 20,
+  },
+  cardOrg: {
+    fontFamily: FONTS.mono,
+    fontSize: 10,
+    color: TOKENS.primary,
+    marginTop: 3,
+  },
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -347,54 +483,124 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingTop: 6,
     borderTopWidth: 1,
-    borderTopColor: '#334155',
+    borderTopColor: TOKENS.border,
   },
-  verifiedTag: { fontSize: 10, color: '#4ADE80', fontWeight: '600' },
-  sourceTag: { fontSize: 10, color: '#94A3B8' },
+  verifiedTag: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: TOKENS.statusSynced,
+    fontWeight: '600',
+  },
+  sourceTag: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: TOKENS.mutedForeground,
+  },
   stepsContainer: {
     marginTop: 10,
-    backgroundColor: '#0F172A',
-    borderRadius: 8,
+    backgroundColor: TOKENS.muted,
+    borderRadius: 2,
     padding: 10,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: TOKENS.border,
   },
-  stepsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  stepsTitle: { fontSize: 10, fontWeight: '800', color: '#F59E0B', letterSpacing: 0.5 },
-  expandButtonText: { fontSize: 10, fontWeight: '700', color: '#38BDF8' },
-  stepItem: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 6 },
+  stepsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  stepsTitle: {
+    fontFamily: FONTS.mono,
+    fontSize: 8,
+    fontWeight: '700',
+    color: TOKENS.primary,
+    letterSpacing: 1,
+  },
+  expandButtonText: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    fontWeight: '700',
+    color: TOKENS.primary,
+  },
+  stepItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 6,
+  },
   stepNumberBadge: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#0284C7',
+    width: 16,
+    height: 16,
+    borderRadius: 2,
+    backgroundColor: TOKENS.secondary,
+    borderWidth: 1,
+    borderColor: TOKENS.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 6,
     marginTop: 2,
   },
-  stepNumberText: { fontSize: 10, fontWeight: '800', color: '#FFFFFF' },
-  stepDescription: { flex: 1, fontSize: 12, color: '#E2E8F0', lineHeight: 16 },
-  moreStepsHint: { marginTop: 2, paddingVertical: 2 },
-  moreStepsText: { fontSize: 11, color: '#38BDF8', fontStyle: 'italic' },
+  stepNumberText: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    fontWeight: '700',
+    color: TOKENS.primary,
+  },
+  stepDescription: {
+    flex: 1,
+    fontFamily: FONTS.sans,
+    fontSize: 11,
+    color: TOKENS.foreground,
+    lineHeight: 16,
+  },
+  moreStepsHint: {
+    marginTop: 2,
+    paddingVertical: 2,
+  },
+  moreStepsText: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: TOKENS.primary,
+  },
   actionButtonBar: {
     marginTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#1E293B',
+    borderTopColor: TOKENS.border,
     paddingTop: 6,
     flexDirection: 'row',
     justifyContent: 'flex-end',
   },
   smsShareBtn: {
-    backgroundColor: '#1E293B',
+    backgroundColor: TOKENS.secondary,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 4,
+    borderRadius: 2,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: TOKENS.border,
   },
-  smsShareText: { fontSize: 10, fontWeight: '700', color: '#38BDF8' },
-  emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: 32 },
-  emptyTitle: { fontSize: 15, fontWeight: '700', color: '#F8FAFC' },
-  emptySub: { fontSize: 12, color: '#94A3B8', textAlign: 'center', marginTop: 4, paddingHorizontal: 20 },
+  smsShareText: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    fontWeight: '700',
+    color: TOKENS.primary,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 32,
+  },
+  emptyTitle: {
+    fontFamily: FONTS.condensed,
+    fontSize: 16,
+    fontWeight: '700',
+    color: TOKENS.foreground,
+  },
+  emptySub: {
+    fontFamily: FONTS.mono,
+    fontSize: 10,
+    color: TOKENS.mutedForeground,
+    textAlign: 'center',
+    marginTop: 4,
+    paddingHorizontal: 20,
+  },
 });

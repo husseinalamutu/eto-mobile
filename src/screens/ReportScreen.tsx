@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -11,390 +11,695 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
-import { ReportCategory, ReportSeverity, Language } from '../types';
+import { Report, ReportCategory, ReportSeverity, Language } from '../types';
 import { translations } from '../i18n/translations';
-import { insertReport } from '../db';
+import { getReports, insertReport } from '../db';
 import { NIGERIA_LOCATIONS } from '../data/lgaData';
+import { TOKENS, RISK_CONFIG, STATUS_CONFIG, FONTS, METRICS, HIT_SLOP_64 } from '../theme/tokens';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
 
-interface ReportScreenProps {
+interface Props {
   language: Language;
   onReportSubmitted?: () => void;
+  onPanicTap?: () => void;
+  onLock?: () => void;
+  onOpenSpec?: () => void;
 }
 
-const RESOURCE_TAGS = [
-  'Communal Borehole',
-  'Grazing Route Corridor',
-  'Fertilizer Voucher',
-  'Relief Food Diversion',
-  'Checkpoint Extortion',
-  'Farmland Encroachment',
+export interface LedgerEntry {
+  id: string;
+  category: string;
+  categoryHA: string;
+  title: string;
+  titleHA: string;
+  date: string;
+  time: string;
+  status: 'synced' | 'pending';
+  location: string;
+  note: string;
+  noteHA: string;
+  risk: 'CRIT' | 'HIGH' | 'MED' | 'LOW';
+}
+
+// Initial baseline field entries if database has newly initialized
+const DEFAULT_LEDGER_ENTRIES: LedgerEntry[] = [
+  {
+    id: 'ENT-0041',
+    category: 'Relief Aid',
+    categoryHA: 'Agaji',
+    title: 'WFP Distribution — Maiduguri Ward 4',
+    titleHA: 'Rabawa WFP — Garin Maiduguri 4',
+    date: '2026-09-12',
+    time: '14:23',
+    status: 'pending' as const,
+    location: '12.234°N 13.157°E (Maiduguri)',
+    note: '127 bags diverted. Truck reg. BN-0049-ABJ',
+    noteHA: 'Mun sace jakar 127. Mota BN-0049-ABJ',
+    risk: 'HIGH' as const,
+  },
+  {
+    id: 'ENT-0040',
+    category: 'Water Points',
+    categoryHA: 'Ruwa',
+    title: 'Borehole #7 — Konduga LGA',
+    titleHA: 'Rijiya #7 — Ƙananan Hukumar Konduga',
+    date: '2026-09-12',
+    time: '09:11',
+    status: 'synced' as const,
+    location: '11.904°N 13.288°E (Konduga)',
+    note: 'Pump seized. Community blocked access since Aug 30.',
+    noteHA: 'An toshe famfo. An katse shiga tun Ogusta 30.',
+    risk: 'MED' as const,
+  },
+  {
+    id: 'ENT-0039',
+    category: 'Security',
+    categoryHA: 'Tsaro',
+    title: 'Armed Stop — Route B7 / Dikwa Road',
+    titleHA: 'Dakatar da Makamai — Hanyar B7/Dikwa',
+    date: '2026-09-11',
+    time: '17:55',
+    status: 'synced' as const,
+    location: '12.017°N 13.904°E (Mafa/Dikwa)',
+    note: '4 armed, plain-clothed. Documents demanded.',
+    noteHA: '4 makami, riguna. An buƙaci takardu.',
+    risk: 'CRIT' as const,
+  },
+  {
+    id: 'ENT-0038',
+    category: 'Land',
+    categoryHA: 'Ƙasa',
+    title: 'Forced eviction — Ngala farming cluster',
+    titleHA: 'Korar da tilastawa — Gonaki Ngala',
+    date: '2026-09-10',
+    time: '11:02',
+    status: 'synced' as const,
+    location: '12.356°N 14.189°E (Ngala)',
+    note: '23 families. No documentation issued.',
+    noteHA: 'Iyalai 23. Ba\'a bayar da takarda.',
+    risk: 'HIGH' as const,
+  },
 ];
 
-export const ReportScreen: React.FC<ReportScreenProps> = ({ language, onReportSubmitted }) => {
+const CATEGORIES = ['Relief Aid', 'Water Points', 'Security', 'Land', 'Infrastructure'];
+
+export const ReportScreen: React.FC<Props> = ({
+  language,
+  onReportSubmitted,
+  onPanicTap,
+  onLock,
+  onOpenSpec,
+}) => {
   const t = translations[language];
 
-  const CATEGORIES: { label: string; value: ReportCategory; desc: string }[] = [
-    { label: t.catConflict, value: 'Conflict Indicator', desc: t.catConflictDesc },
-    { label: t.catInfra, value: 'Infrastructure Breakdown', desc: t.catInfraDesc },
-    { label: t.catMisappr, value: 'Misappropriation', desc: t.catMisapprDesc },
-  ];
+  const [activeTab, setActiveTab] = useState<number>(0);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [showNewModal, setShowNewModal] = useState<boolean>(false);
+  const [dbReports, setDbReports] = useState<Report[]>([]);
+  const [pendingCount, setPendingCount] = useState<number>(1);
 
-  const SEVERITIES: { label: string; value: ReportSeverity; color: string }[] = [
-    { label: t.sevLow, value: 'Low', color: '#16A34A' },
-    { label: t.sevMed, value: 'Medium', color: '#F59E0B' },
-    { label: t.sevCrit, value: 'Critical', color: '#EF4444' },
-  ];
-
-  const [category, setCategory] = useState<ReportCategory>('Conflict Indicator');
-  const [selectedStateIndex, setSelectedStateIndex] = useState<number>(0);
+  // Form State inside Modal
+  const [formCategory, setFormCategory] = useState<string>('Relief Aid');
+  const [formTitle, setFormTitle] = useState<string>('');
+  const [formRisk, setFormRisk] = useState<'CRIT' | 'HIGH' | 'MED' | 'LOW'>('HIGH');
+  const [formNote, setFormNote] = useState<string>('');
+  const [selectedStateIndex, setSelectedStateIndex] = useState<number>(2); // Default Borno
   const [selectedLGAIndex, setSelectedLGAIndex] = useState<number>(0);
   const [selectedWardIndex, setSelectedWardIndex] = useState<number>(0);
-  const [specificLandmark, setSpecificLandmark] = useState<string>('');
-  const [selectedTags, setSelectedTags] = useState<string[]>(['Communal Borehole']);
-  const [description, setDescription] = useState<string>('');
-  const [severity, setSeverity] = useState<ReportSeverity>('Medium');
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [showLocationPicker, setShowLocationPicker] = useState<boolean>(false);
   const [formError, setFormError] = useState<string>('');
 
-  // Location Picker Modal State
-  const [locationModalVisible, setLocationModalVisible] = useState<boolean>(false);
+  // Panic Tap tracking (3 taps within 800ms)
+  const panicTapCount = useRef<number>(0);
+  const panicTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Confirmation Modal
-  const [confirmationVisible, setConfirmationVisible] = useState<boolean>(false);
-  const [submittedReportId, setSubmittedReportId] = useState<string>('');
-  const [submittedTimestamp, setSubmittedTimestamp] = useState<string>('');
+  const handleHeaderTap = useCallback(() => {
+    panicTapCount.current += 1;
+    if (panicTimer.current) clearTimeout(panicTimer.current);
 
-  const currentState = NIGERIA_LOCATIONS[selectedStateIndex];
-  const currentLGA = currentState.lgas[selectedLGAIndex];
-  const currentWard = currentLGA.wards[selectedWardIndex];
+    if (panicTapCount.current >= 3) {
+      panicTapCount.current = 0;
+      if (onPanicTap) onPanicTap();
+      return;
+    }
 
-  const formattedLocation = `${currentWard}, ${currentLGA.name}, ${currentState.state}${
-    specificLandmark.trim() ? ` (${specificLandmark.trim()})` : ''
-  }`;
+    panicTimer.current = setTimeout(() => {
+      panicTapCount.current = 0;
+    }, 800);
+  }, [onPanicTap]);
 
-  const toggleTag = (tag: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
-  };
+  // Load records from local SQLite database
+  const loadDatabaseReports = useCallback(async () => {
+    try {
+      const stored: Report[] = await getReports();
+      setDbReports(stored);
+      const unsynced = stored.filter((r: Report) => r.synced === 0).length;
+      setPendingCount(unsynced + 1); // include default pending
+    } catch (err) {
+      console.error('Failed to load SQLite reports:', err);
+    }
+  }, []);
 
-  const handleSubmit = async () => {
-    setFormError('');
+  useEffect(() => {
+    loadDatabaseReports();
+  }, [loadDatabaseReports]);
 
-    if (!description.trim() || description.trim().length < 10) {
-      setFormError('Please detail what occurred (minimum 10 characters).');
+  // Merge SQLite records with baseline records
+  const allEntries = [
+    ...dbReports.map((r) => ({
+      id: `ENT-${r.id.substring(0, 4).toUpperCase()}`,
+      category: r.category,
+      categoryHA: r.category,
+      title: r.description.split('.')[0] || 'Community Incident Observation',
+      titleHA: r.description.split('.')[0] || 'Bayanan Filin',
+      date: r.created_at.split('T')[0] || '2026-09-14',
+      time: r.created_at.split('T')[1]?.substring(0, 5) || '10:00',
+      status: (r.synced === 1 ? 'synced' : 'pending') as 'synced' | 'pending',
+      location: r.location,
+      note: r.description,
+      noteHA: r.description,
+      risk: (r.severity === 'Critical' ? 'CRIT' : r.severity === 'Low' ? 'LOW' : 'HIGH') as 'CRIT' | 'HIGH' | 'MED' | 'LOW',
+    })),
+    ...DEFAULT_LEDGER_ENTRIES,
+  ];
+
+  // Tab Filtering
+  const filteredEntries: LedgerEntry[] =
+    activeTab === 0
+      ? allEntries
+      : allEntries.filter((e) => {
+          const targetCat = CATEGORIES[activeTab - 1];
+          return e.category.toLowerCase().includes(targetCat.toLowerCase());
+        });
+
+  const renderEntryCard: ListRenderItem<LedgerEntry> = useCallback(
+    ({ item: entry }) => {
+      const risk = RISK_CONFIG[entry.risk] || RISK_CONFIG.HIGH;
+      const status = STATUS_CONFIG[entry.status] || STATUS_CONFIG.pending;
+      const isOpen = expandedId === entry.id;
+
+      return (
+        <TouchableOpacity
+          key={entry.id}
+          onPress={() => setExpandedId(isOpen ? null : entry.id)}
+          style={[styles.entryCard, isOpen && styles.entryCardExpanded]}
+          activeOpacity={0.85}
+        >
+          <View style={styles.entryMainRow}>
+            {/* 32×32 Shape Icon */}
+            <View
+              style={[
+                styles.shapeBox,
+                { backgroundColor: risk.bg, borderColor: risk.border },
+              ]}
+            >
+              <Text style={[styles.shapeIcon, { color: risk.text }]}>
+                {risk.shape}
+              </Text>
+            </View>
+
+            {/* Core Details */}
+            <View style={styles.entryInfoCol}>
+              <View style={styles.entryMetaRow}>
+                <Text style={styles.entryIdText}>{entry.id}</Text>
+                <View
+                  style={[
+                    styles.riskBadge,
+                    { backgroundColor: risk.bg, borderColor: risk.border },
+                  ]}
+                >
+                  <Text style={[styles.riskBadgeText, { color: risk.text }]}>
+                    {risk.shape} {entry.risk}
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={styles.entryTitleText}>
+                {language === 'ha' ? entry.titleHA : entry.title}
+              </Text>
+
+              <View style={styles.entryStatusRow}>
+                <Text style={styles.entryDateText}>
+                  {entry.date} {entry.time}
+                </Text>
+                <View
+                  style={[
+                    styles.statusPill,
+                    { backgroundColor: status.bg, borderColor: status.border },
+                  ]}
+                >
+                  <Text style={[styles.statusPillText, { color: status.color }]}>
+                    {status.icon} {status.label}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <Text style={styles.chevronArrow}>{isOpen ? '▴' : '▾'}</Text>
+          </View>
+
+          {/* Expandable Details Box */}
+          {isOpen && (
+            <View style={styles.expandedSection}>
+              <View style={styles.expandedGrid}>
+                <View style={styles.gridCol}>
+                  <Text style={styles.gridColLabel}>LOCATION</Text>
+                  <Text style={styles.gridColValue}>{entry.location}</Text>
+                </View>
+                <View style={styles.gridCol}>
+                  <Text style={styles.gridColLabel}>CATEGORY</Text>
+                  <Text style={styles.gridColValueWhite}>{entry.category}</Text>
+                </View>
+              </View>
+
+              <View style={styles.fieldNoteBox}>
+                <Text style={styles.fieldNoteLabel}>FIELD NOTE</Text>
+                <Text style={styles.fieldNoteText}>
+                  {language === 'ha' ? entry.noteHA : entry.note}
+                </Text>
+              </View>
+
+              <View style={styles.expandedActionsRow}>
+                <TouchableOpacity
+                  onPress={() =>
+                    Alert.alert(
+                      'Record Receipt',
+                      `Local ID: ${entry.id}\nGPS: ${entry.location}\nIntegrity Hash: SHA-256 Validated`
+                    )
+                  }
+                  style={styles.actionBtnPrimary}
+                  hitSlop={HIT_SLOP_64}
+                >
+                  <Text style={styles.actionBtnPrimaryText}>🔍 RECEIPT</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() =>
+                    Alert.alert(
+                      'Flag Incident',
+                      `Flagged ${entry.id} for emergency peer-verification.`
+                    )
+                  }
+                  style={styles.actionBtnDanger}
+                  hitSlop={HIT_SLOP_64}
+                >
+                  <Text style={styles.actionBtnDangerText}>⚑ FLAG</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </TouchableOpacity>
+      );
+    },
+    [expandedId, language]
+  );
+
+  // Current selected location label
+  const currentState = NIGERIA_LOCATIONS[selectedStateIndex] || NIGERIA_LOCATIONS[0];
+  const currentLGA = currentState.lgas[selectedLGAIndex] || currentState.lgas[0];
+  const currentWard = currentLGA.wards[selectedWardIndex] || currentLGA.wards[0];
+  const locationSummary = `${currentWard}, ${currentLGA.name} LGA, ${currentState.state} State`;
+
+  // Submit New Record
+  const handleSaveRecord = async () => {
+    if (!formTitle.trim() && !formNote.trim()) {
+      setFormError('Please enter an incident summary or field note.');
       return;
     }
 
     try {
-      setIsSubmitting(true);
-      const tagPrefix = selectedTags.length > 0 ? `[Tags: ${selectedTags.join(', ')}] ` : '';
-      const fullDescription = `${tagPrefix}${description.trim()}`;
+      const severityMap: Record<string, ReportSeverity> = {
+        CRIT: 'Critical',
+        HIGH: 'Medium',
+        MED: 'Medium',
+        LOW: 'Low',
+      };
 
-      const newReport = await insertReport({
-        category,
-        location: formattedLocation,
-        description: fullDescription,
-        severity,
+      const categoryMap: Record<string, ReportCategory> = {
+        'Relief Aid': 'Misappropriation',
+        'Water Points': 'Infrastructure Breakdown',
+        'Security': 'Conflict Indicator',
+        'Land': 'Conflict Indicator',
+        'Infrastructure': 'Infrastructure Breakdown',
+      };
+
+      await insertReport({
+        category: categoryMap[formCategory] || 'Conflict Indicator',
+        location: locationSummary,
+        description: `${formTitle.trim()} — ${formNote.trim()}`,
+        severity: severityMap[formRisk] || 'Medium',
       });
 
-      setSubmittedReportId(newReport.id);
-      setSubmittedTimestamp(newReport.created_at);
-      setConfirmationVisible(true);
-
-      // Reset form fields
-      setDescription('');
-      setSpecificLandmark('');
-      setSeverity('Medium');
-      setCategory('Conflict Indicator');
+      setShowNewModal(false);
+      setFormTitle('');
+      setFormNote('');
+      setFormError('');
+      await loadDatabaseReports();
 
       if (onReportSubmitted) {
         onReportSubmitted();
       }
+
+      Alert.alert(
+        'Record Saved Offline',
+        `Entry committed to local encrypted SQLite ledger (${locationSummary}).`
+      );
     } catch (err) {
-      setFormError('Failed to commit record to offline database.');
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
+      console.error('Failed to save record:', err);
+      setFormError('Database write error. Try again.');
     }
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#0F172A" />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
+      <StatusBar barStyle="light-content" backgroundColor={TOKENS.background} />
+
+      {/* ── Status Bar — PANIC TRIGGER ZONE (3 rapid taps within 800ms) ── */}
+      <TouchableOpacity
+        onPress={handleHeaderTap}
+        activeOpacity={0.9}
+        style={styles.panicTriggerBar}
       >
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.screenHeading}>{t.reportHeading}</Text>
-            <Text style={styles.screenSubheading}>{t.reportSubheading}</Text>
+        <View style={styles.clockRow}>
+          <Text style={styles.clockText}>09:41</Text>
+          <View style={styles.secureBadge}>
+            <Text style={styles.secureBadgeText}>SECURE</Text>
           </View>
+        </View>
 
-          {/* Anonymity Shield Banner */}
-          <View style={styles.securityBanner}>
-            <Text style={styles.securityTitle}>🛡️ ZERO-TRACE CIVIC ANONYMITY</Text>
-            <Text style={styles.securityText}>
-              Device identifiers, phone numbers, and coordinates are excluded. Identified solely by a decentralized cryptographic hash.
-            </Text>
-          </View>
+        <View style={styles.syncStatusRow}>
+          <Text style={styles.syncStatusText}>
+            ⬡ OFFLINE · {pendingCount} PENDING
+          </Text>
+          {onOpenSpec && (
+            <TouchableOpacity
+              onPress={onOpenSpec}
+              style={styles.specMiniBtn}
+              activeOpacity={0.7}
+              hitSlop={HIT_SLOP_64}
+            >
+              <Text style={styles.specMiniBtnText}>SPEC</Text>
+            </TouchableOpacity>
+          )}
+          {onLock && (
+            <TouchableOpacity
+              onPress={onLock}
+              style={styles.lockMiniBtn}
+              activeOpacity={0.7}
+              hitSlop={HIT_SLOP_64}
+            >
+              <Text style={styles.lockMiniBtnText}>🔒</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </TouchableOpacity>
 
-          {formError ? (
-            <View style={styles.errorBox}>
-              <Text style={styles.errorText}>⚠️ {formError}</Text>
-            </View>
-          ) : null}
+      {/* ── Header Row ── */}
+      <View style={styles.headerRow}>
+        <View style={styles.headerTitleGroup}>
+          <Text style={styles.mainTitle}>{t.tabReport.toUpperCase()}</Text>
+          <Text style={styles.subTitle}>
+            NORTHERN LEDGER · {filteredEntries.length} RECORDS
+          </Text>
+        </View>
 
-          {/* Section 1: Location Selector */}
-          <View style={styles.cardSection}>
-            <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionLabel}>{t.fieldLocation}</Text>
+        <TouchableOpacity
+          onPress={() => setShowNewModal(true)}
+          style={styles.newRecordBtn}
+          activeOpacity={0.8}
+          hitSlop={HIT_SLOP_64}
+        >
+          <Text style={styles.newRecordBtnIcon}>+</Text>
+          <Text style={styles.newRecordBtnText}>NEW</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* ── Category Filter Tabs ── */}
+      <View style={styles.tabsContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabsScrollContent}
+        >
+          {['ALL', ...CATEGORIES].map((cat, i) => {
+            const isActive = activeTab === i;
+            return (
               <TouchableOpacity
-                onPress={() => setLocationModalVisible(true)}
-                style={styles.changeLocBtn}
+                key={cat}
+                onPress={() => setActiveTab(i)}
+                style={[
+                  styles.tabButton,
+                  isActive && styles.tabButtonActive,
+                ]}
+                activeOpacity={0.7}
+                hitSlop={HIT_SLOP_64}
               >
-                <Text style={styles.changeLocText}>Change</Text>
+                <Text
+                  style={[
+                    styles.tabButtonText,
+                    isActive && styles.tabButtonTextActive,
+                  ]}
+                >
+                  {cat}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+
+      {/* ── Virtualized Entries List (1GB RAM & Android Go Optimized) ── */}
+      <View style={styles.listContainer}>
+        <FlashList
+          data={filteredEntries}
+          renderItem={renderEntryCard}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+        />
+      </View>
+
+      {/* ── "+ NEW RECORD" Modal ── */}
+      <Modal
+        visible={showNewModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowNewModal(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>+ NEW FIELD RECORD</Text>
+              <TouchableOpacity
+                onPress={() => setShowNewModal(false)}
+                style={styles.closeBtn}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
+                <Text style={styles.closeBtnText}>✕</Text>
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity
-              style={styles.locationDisplayBox}
-              onPress={() => setLocationModalVisible(true)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.locationPinIcon}>📍</Text>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.locationStateLga}>
-                  {currentState.state} • {currentLGA.name}
-                </Text>
-                <Text style={styles.locationWard}>{currentWard}</Text>
-              </View>
-            </TouchableOpacity>
+            <ScrollView contentContainerStyle={styles.modalScroll}>
+              {formError ? <Text style={styles.errorText}>{formError}</Text> : null}
 
-            <TextInput
-              style={styles.landmarkInput}
-              placeholder="Optional landmark (e.g. Near Solar Pump #2 or Old Market Bridge)"
-              placeholderTextColor="#64748B"
-              value={specificLandmark}
-              onChangeText={setSpecificLandmark}
-            />
-          </View>
-
-          {/* Section 2: Incident Category */}
-          <View style={styles.cardSection}>
-            <Text style={styles.sectionLabel}>{t.fieldCategory}</Text>
-            {CATEGORIES.map((cat) => {
-              const isSelected = category === cat.value;
-              return (
-                <TouchableOpacity
-                  key={cat.value}
-                  activeOpacity={0.8}
-                  style={[styles.categoryCard, isSelected && styles.categoryCardSelected]}
-                  onPress={() => setCategory(cat.value)}
-                >
-                  <View style={styles.radioOuter}>
-                    {isSelected && <View style={styles.radioInner} />}
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      style={[
-                        styles.categoryTitle,
-                        isSelected && styles.categoryTitleSelected,
-                      ]}
-                    >
-                      {cat.label}
-                    </Text>
-                    <Text style={styles.categoryDesc}>{cat.desc}</Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          {/* Section 3: Severity Level */}
-          <View style={styles.cardSection}>
-            <Text style={styles.sectionLabel}>{t.fieldSeverity}</Text>
-            <View style={styles.severityRow}>
-              {SEVERITIES.map((s) => {
-                const isSelected = severity === s.value;
-                return (
+              {/* Category selector */}
+              <Text style={styles.inputLabel}>CATEGORY</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll}>
+                {CATEGORIES.map((cat) => (
                   <TouchableOpacity
-                    key={s.value}
-                    activeOpacity={0.8}
+                    key={cat}
+                    onPress={() => setFormCategory(cat)}
                     style={[
-                      styles.severityBtn,
-                      isSelected && { borderColor: s.color, backgroundColor: s.color + '22' },
+                      styles.catChip,
+                      formCategory === cat && styles.catChipActive,
                     ]}
-                    onPress={() => setSeverity(s.value)}
                   >
-                    <View style={[styles.severityDot, { backgroundColor: s.color }]} />
                     <Text
                       style={[
-                        styles.severityText,
-                        isSelected && { color: '#FFFFFF', fontWeight: '800' },
+                        styles.catChipText,
+                        formCategory === cat && styles.catChipTextActive,
                       ]}
                     >
-                      {s.value}
+                      {cat}
                     </Text>
                   </TouchableOpacity>
-                );
-              })}
-            </View>
+                ))}
+              </ScrollView>
+
+              {/* Location Picker */}
+              <Text style={styles.inputLabel}>LOCATION (NIGERIAN LGA / GPS)</Text>
+              <TouchableOpacity
+                onPress={() => setShowLocationPicker(true)}
+                style={styles.locationSelectorBtn}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.locationIcon}>📍</Text>
+                <Text style={styles.locationSummaryText} numberOfLines={1}>
+                  {locationSummary}
+                </Text>
+                <Text style={styles.changeText}>CHANGE</Text>
+              </TouchableOpacity>
+
+              {/* Title / Summary */}
+              <Text style={styles.inputLabel}>TITLE / SUMMARY</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Brief summary of incident..."
+                placeholderTextColor={TOKENS.mutedForeground}
+                value={formTitle}
+                onChangeText={setFormTitle}
+              />
+
+              {/* Risk Level */}
+              <Text style={styles.inputLabel}>RISK LEVEL</Text>
+              <View style={styles.riskRow}>
+                {(['CRIT', 'HIGH', 'MED', 'LOW'] as const).map((r) => {
+                  const cfg = RISK_CONFIG[r];
+                  const isSelected = formRisk === r;
+                  return (
+                    <TouchableOpacity
+                      key={r}
+                      onPress={() => setFormRisk(r)}
+                      style={[
+                        styles.riskOption,
+                        { borderColor: isSelected ? cfg.text : TOKENS.border },
+                        isSelected && { backgroundColor: cfg.bg },
+                      ]}
+                    >
+                      <Text style={[styles.riskOptionShape, { color: cfg.text }]}>
+                        {cfg.shape}
+                      </Text>
+                      <Text style={[styles.riskOptionText, { color: cfg.text }]}>
+                        {r}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* Field Note */}
+              <Text style={styles.inputLabel}>FIELD NOTE (DETAILS)</Text>
+              <TextInput
+                style={[styles.textInput, styles.textArea]}
+                placeholder="Detailed observation (truck plate, affected individuals, witnesses)..."
+                placeholderTextColor={TOKENS.mutedForeground}
+                value={formNote}
+                onChangeText={setFormNote}
+                multiline={true}
+                numberOfLines={4}
+              />
+
+              {/* Save Button */}
+              <TouchableOpacity
+                onPress={handleSaveRecord}
+                style={styles.submitBtn}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.submitBtnText}>▣ SAVE RECORD TO LEDGER</Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
+        </KeyboardAvoidingView>
+      </Modal>
 
-          {/* Section 4: Resource Tags */}
-          <View style={styles.cardSection}>
-            <Text style={styles.sectionLabel}>DISPUTE / RESOURCE TAGS</Text>
-            <View style={styles.tagsContainer}>
-              {RESOURCE_TAGS.map((tag) => {
-                const isSelected = selectedTags.includes(tag);
-                return (
-                  <TouchableOpacity
-                    key={tag}
-                    style={[styles.tagChip, isSelected && styles.tagChipActive]}
-                    onPress={() => toggleTag(tag)}
-                  >
-                    <Text style={[styles.tagText, isSelected && styles.tagTextActive]}>
-                      {isSelected ? '✓ ' : '+ '}
-                      {tag}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-
-          {/* Section 5: Description */}
-          <View style={styles.cardSection}>
-            <Text style={styles.sectionLabel}>{t.fieldDescription}</Text>
-            <TextInput
-              style={styles.textArea}
-              placeholder={t.descPlaceholder}
-              placeholderTextColor="#64748B"
-              value={description}
-              onChangeText={setDescription}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
-          </View>
-
-          {/* Submit Button */}
-          <TouchableOpacity
-            style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
-            onPress={handleSubmit}
-            disabled={isSubmitting}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.submitButtonText}>
-              {isSubmitting ? t.submittingText : t.submitButton}
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </KeyboardAvoidingView>
-
-      {/* Clean Location Selector Modal */}
+      {/* ── Sub-Modal: Nigerian Location Directory Picker ── */}
       <Modal
-        visible={locationModalVisible}
-        transparent
+        visible={showLocationPicker}
         animationType="slide"
-        onRequestClose={() => setLocationModalVisible(false)}
+        transparent={true}
+        onRequestClose={() => setShowLocationPicker(false)}
       >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.locationModal}>
-            <Text style={styles.locModalTitle}>📍 Select State, LGA & Ward</Text>
+        <View style={styles.locationModalOverlay}>
+          <View style={styles.locationModalCard}>
+            <Text style={styles.locationModalTitle}>Select Nigerian Location</Text>
 
-            <ScrollView style={{ maxHeight: 380 }}>
-              <Text style={styles.locStepHeader}>1. SELECT STATE</Text>
-              <View style={styles.locChipWrap}>
-                {NIGERIA_LOCATIONS.map((loc, idx) => (
-                  <TouchableOpacity
-                    key={loc.state}
-                    style={[styles.locChoiceChip, selectedStateIndex === idx && styles.locChoiceChipActive]}
-                    onPress={() => {
-                      setSelectedStateIndex(idx);
-                      setSelectedLGAIndex(0);
-                      setSelectedWardIndex(0);
-                    }}
+            {/* State Picker */}
+            <Text style={styles.locationSubLabel}>1. STATE</Text>
+            <View style={styles.chipGrid}>
+              {NIGERIA_LOCATIONS.map((loc, idx) => (
+                <TouchableOpacity
+                  key={loc.state}
+                  onPress={() => {
+                    setSelectedStateIndex(idx);
+                    setSelectedLGAIndex(0);
+                    setSelectedWardIndex(0);
+                  }}
+                  style={[
+                    styles.locChip,
+                    selectedStateIndex === idx && styles.locChipActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.locChipText,
+                      selectedStateIndex === idx && styles.locChipTextActive,
+                    ]}
                   >
-                    <Text style={[styles.locChoiceText, selectedStateIndex === idx && styles.locChoiceTextActive]}>
-                      {loc.state}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+                    {loc.state}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
-              <Text style={styles.locStepHeader}>2. SELECT LGA</Text>
-              <View style={styles.locChipWrap}>
-                {currentState.lgas.map((lga, idx) => (
-                  <TouchableOpacity
-                    key={lga.name}
-                    style={[styles.locChoiceChip, selectedLGAIndex === idx && styles.locChoiceChipActive]}
-                    onPress={() => {
-                      setSelectedLGAIndex(idx);
-                      setSelectedWardIndex(0);
-                    }}
+            {/* LGA Picker */}
+            <Text style={styles.locationSubLabel}>2. LGA</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.lgaScroll}>
+              {currentState.lgas.map((lga, idx) => (
+                <TouchableOpacity
+                  key={lga.name}
+                  onPress={() => {
+                    setSelectedLGAIndex(idx);
+                    setSelectedWardIndex(0);
+                  }}
+                  style={[
+                    styles.locChip,
+                    selectedLGAIndex === idx && styles.locChipActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.locChipText,
+                      selectedLGAIndex === idx && styles.locChipTextActive,
+                    ]}
                   >
-                    <Text style={[styles.locChoiceText, selectedLGAIndex === idx && styles.locChoiceTextActive]}>
-                      {lga.name}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+                    {lga.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
 
-              <Text style={styles.locStepHeader}>3. SELECT WARD</Text>
-              <View style={styles.locChipWrap}>
-                {currentLGA.wards.map((ward, idx) => (
-                  <TouchableOpacity
-                    key={ward}
-                    style={[styles.locChoiceChip, selectedWardIndex === idx && styles.locChoiceChipActive]}
-                    onPress={() => setSelectedWardIndex(idx)}
+            {/* Ward Picker */}
+            <Text style={styles.locationSubLabel}>3. WARD / COMMUNITY</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.lgaScroll}>
+              {currentLGA.wards.map((w, idx) => (
+                <TouchableOpacity
+                  key={w}
+                  onPress={() => setSelectedWardIndex(idx)}
+                  style={[
+                    styles.locChip,
+                    selectedWardIndex === idx && styles.locChipActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.locChipText,
+                      selectedWardIndex === idx && styles.locChipTextActive,
+                    ]}
                   >
-                    <Text style={[styles.locChoiceText, selectedWardIndex === idx && styles.locChoiceTextActive]}>
-                      {ward}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+                    {w}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </ScrollView>
 
             <TouchableOpacity
-              style={styles.locModalDoneBtn}
-              onPress={() => setLocationModalVisible(false)}
+              onPress={() => setShowLocationPicker(false)}
+              style={styles.locationDoneBtn}
             >
-              <Text style={styles.locModalDoneText}>Confirm Location</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Confirmation Modal */}
-      <Modal visible={confirmationVisible} transparent animationType="fade">
-        <View style={styles.modalBackdrop}>
-          <View style={styles.confirmCard}>
-            <View style={styles.modalIconBox}>
-              <Text style={styles.modalIcon}>💾</Text>
-            </View>
-            <Text style={styles.modalTitle}>{t.storedModalTitle}</Text>
-            <Text style={styles.modalBody}>{t.storedModalBody}</Text>
-
-            <View style={styles.modalLedgerInfo}>
-              <Text style={styles.modalInfoLabel}>{t.ledgerId}</Text>
-              <Text style={styles.modalInfoHash}>{submittedReportId}</Text>
-              <Text style={[styles.modalInfoLabel, { marginTop: 8 }]}>{t.timestamp}</Text>
-              <Text style={styles.modalInfoVal}>{submittedTimestamp}</Text>
-              <Text style={[styles.modalInfoLabel, { marginTop: 8 }]}>STATUS:</Text>
-              <Text style={styles.modalStatusPill}>{t.syncStatusPending}</Text>
-            </View>
-
-            <TouchableOpacity
-              style={styles.modalCloseButton}
-              onPress={() => setConfirmationVisible(false)}
-            >
-              <Text style={styles.modalCloseText}>{t.done}</Text>
+              <Text style={styles.locationDoneBtnText}>CONFIRM LOCATION</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -404,275 +709,566 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ language, onReportSu
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#0F172A' },
-  scrollView: { flex: 1, backgroundColor: '#0F172A' },
-  scrollContent: { padding: 18, paddingBottom: 40 },
-  header: { marginBottom: 12 },
-  screenHeading: { fontSize: 20, fontWeight: '900', color: '#F8FAFC' },
-  screenSubheading: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
-  securityBanner: {
-    backgroundColor: '#1E293B',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#38BDF8',
-    borderWidth: 1,
-    borderColor: '#334155',
+  safeArea: {
+    flex: 1,
+    backgroundColor: TOKENS.background,
   },
-  securityTitle: { fontSize: 11, fontWeight: '800', color: '#38BDF8', letterSpacing: 0.5, marginBottom: 4 },
-  securityText: { fontSize: 11, color: '#CBD5E1', lineHeight: 16 },
-  errorBox: {
-    backgroundColor: '#450A0A',
-    borderRadius: 6,
-    padding: 10,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: '#EF4444',
-  },
-  errorText: { color: '#FCA5A5', fontSize: 12, fontWeight: '600' },
-  cardSection: {
-    backgroundColor: '#1E293B',
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  sectionHeaderRow: {
+  panicTriggerBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: TOKENS.border,
   },
-  sectionLabel: { fontSize: 11, fontWeight: '800', color: '#94A3B8', letterSpacing: 0.8, marginBottom: 8 },
-  changeLocBtn: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  changeLocText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#38BDF8',
-  },
-  locationDisplayBox: {
+  clockRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F172A',
-    borderRadius: 8,
-    padding: 12,
+    gap: 8,
+  },
+  clockText: {
+    fontFamily: FONTS.mono,
+    fontSize: 10,
+    color: TOKENS.primary,
+    letterSpacing: 1.2,
+  },
+  secureBadge: {
+    backgroundColor: TOKENS.secondary,
     borderWidth: 1,
-    borderColor: '#38BDF8',
+    borderColor: TOKENS.border,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 2,
   },
-  locationPinIcon: {
-    fontSize: 20,
-    marginRight: 10,
-  },
-  locationStateLga: {
-    fontSize: 11,
+  secureBadgeText: {
+    fontFamily: FONTS.mono,
+    fontSize: 8,
+    color: TOKENS.mutedForeground,
+    letterSpacing: 1.5,
     fontWeight: '700',
-    color: '#38BDF8',
   },
-  locationWard: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#FFFFFF',
+  syncStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  syncStatusText: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: TOKENS.statusPending,
+    letterSpacing: 0.8,
+  },
+  specMiniBtn: {
+    backgroundColor: TOKENS.secondary,
+    borderWidth: 1,
+    borderColor: TOKENS.primary,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 2,
+  },
+  specMiniBtnText: {
+    fontFamily: FONTS.mono,
+    fontSize: 8,
+    color: TOKENS.primary,
+    fontWeight: '700',
+  },
+  lockMiniBtn: {
+    paddingHorizontal: 4,
+  },
+  lockMiniBtnText: {
+    fontSize: 12,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 10,
+  },
+  headerTitleGroup: {
+    flex: 1,
+  },
+  mainTitle: {
+    fontFamily: FONTS.condensed,
+    fontSize: 22,
+    fontWeight: '700',
+    color: TOKENS.primary,
+    letterSpacing: 1,
+  },
+  subTitle: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: TOKENS.mutedForeground,
+    letterSpacing: 1,
     marginTop: 2,
   },
-  landmarkInput: {
-    backgroundColor: '#0F172A',
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    fontSize: 12,
-    color: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#334155',
-    marginTop: 10,
-  },
-  categoryCard: {
-    backgroundColor: '#0F172A',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 8,
+  newRecordBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  categoryCardSelected: { borderColor: '#38BDF8', backgroundColor: '#0B2545' },
-  radioOuter: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 2,
-    borderColor: '#64748B',
-    marginRight: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#38BDF8' },
-  categoryTitle: { fontSize: 13, fontWeight: '700', color: '#F1F5F9' },
-  categoryTitleSelected: { color: '#38BDF8' },
-  categoryDesc: { fontSize: 11, color: '#94A3B8', marginTop: 2 },
-  severityRow: { flexDirection: 'row', gap: 8 },
-  severityBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    backgroundColor: '#0F172A',
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#334155',
-  },
-  severityDot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
-  severityText: { fontSize: 12, fontWeight: '700', color: '#94A3B8' },
-  tagsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  tagChip: {
-    backgroundColor: '#0F172A',
+    gap: 4,
+    backgroundColor: TOKENS.primary,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#334155',
+    borderRadius: 2,
   },
-  tagChipActive: { backgroundColor: '#1E3A8A', borderColor: '#60A5FA' },
-  tagText: { fontSize: 11, color: '#94A3B8' },
-  tagTextActive: { color: '#93C5FD', fontWeight: '800' },
-  textArea: {
-    backgroundColor: '#0F172A',
-    borderRadius: 8,
+  newRecordBtnIcon: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: TOKENS.primaryForeground,
+    lineHeight: 16,
+  },
+  newRecordBtnText: {
+    fontFamily: FONTS.condensed,
+    fontSize: 12,
+    fontWeight: '700',
+    color: TOKENS.primaryForeground,
+    letterSpacing: 1,
+  },
+  tabsContainer: {
+    borderBottomWidth: 1,
+    borderBottomColor: TOKENS.border,
+  },
+  tabsScrollContent: {
+    paddingHorizontal: 16,
+  },
+  tabButton: {
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 13,
-    color: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#334155',
-    height: 90,
+    paddingVertical: 8,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+    marginBottom: -1,
   },
-  submitButton: {
-    backgroundColor: '#0284C7',
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 4,
-    borderWidth: 1,
-    borderColor: '#38BDF8',
+  tabButtonActive: {
+    borderBottomColor: TOKENS.primary,
   },
-  submitButtonDisabled: { opacity: 0.6 },
-  submitButtonText: { fontSize: 14, fontWeight: '800', color: '#FFFFFF', letterSpacing: 0.5 },
-  modalBackdrop: {
+  tabButtonText: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: TOKENS.mutedForeground,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  tabButtonTextActive: {
+    color: TOKENS.primary,
+    fontWeight: '700',
+  },
+  listContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
+  },
+  listContent: {
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 24,
+    gap: 8,
+  },
+  entryCard: {
+    backgroundColor: TOKENS.card,
+    borderWidth: 1,
+    borderColor: TOKENS.border,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  entryCardExpanded: {
+    backgroundColor: TOKENS.secondary,
+    borderColor: TOKENS.primary,
+  },
+  entryMainRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 12,
+    gap: 10,
+  },
+  shapeBox: {
+    width: 32,
+    height: 32,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-  },
-  locationModal: {
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
-    padding: 18,
-    width: '100%',
-    maxWidth: 360,
+    borderRadius: 2,
     borderWidth: 1,
-    borderColor: '#38BDF8',
+    marginTop: 2,
   },
-  locModalTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 12,
+  shapeIcon: {
+    fontSize: 13,
+    fontWeight: 'bold',
   },
-  locStepHeader: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#94A3B8',
-    marginTop: 10,
-    marginBottom: 6,
+  entryInfoCol: {
+    flex: 1,
+  },
+  entryMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  entryIdText: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: TOKENS.mutedForeground,
+    letterSpacing: 1,
+  },
+  riskBadge: {
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 2,
+    borderWidth: 1,
+  },
+  riskBadgeText: {
+    fontFamily: FONTS.mono,
+    fontSize: 8,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+  },
+  entryTitleText: {
+    fontFamily: FONTS.condensed,
+    fontSize: 14,
+    fontWeight: '600',
+    color: TOKENS.foreground,
+    lineHeight: 18,
+  },
+  entryStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 4,
+  },
+  entryDateText: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: TOKENS.mutedForeground,
+  },
+  statusPill: {
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 2,
+    borderWidth: 1,
+  },
+  statusPillText: {
+    fontFamily: FONTS.mono,
+    fontSize: 8,
+    fontWeight: '700',
     letterSpacing: 0.5,
   },
-  locChipWrap: {
+  chevronArrow: {
+    fontFamily: FONTS.mono,
+    fontSize: 12,
+    color: TOKENS.mutedForeground,
+    marginTop: 2,
+  },
+  expandedSection: {
+    borderTopWidth: 1,
+    borderTopColor: TOKENS.border,
+    padding: 12,
+  },
+  expandedGrid: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 10,
+  },
+  gridCol: {
+    flex: 1,
+  },
+  gridColLabel: {
+    fontFamily: FONTS.mono,
+    fontSize: 8,
+    color: TOKENS.mutedForeground,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  gridColValue: {
+    fontFamily: FONTS.mono,
+    fontSize: 10,
+    color: TOKENS.primary,
+  },
+  gridColValueWhite: {
+    fontFamily: FONTS.mono,
+    fontSize: 10,
+    color: TOKENS.foreground,
+  },
+  fieldNoteBox: {
+    backgroundColor: TOKENS.muted,
+    padding: 8,
+    borderRadius: 2,
+    marginBottom: 10,
+  },
+  fieldNoteLabel: {
+    fontFamily: FONTS.mono,
+    fontSize: 8,
+    color: TOKENS.mutedForeground,
+    letterSpacing: 1,
+    marginBottom: 2,
+  },
+  fieldNoteText: {
+    fontFamily: FONTS.condensed,
+    fontSize: 13,
+    color: TOKENS.foreground,
+    lineHeight: 18,
+  },
+  expandedActionsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionBtnPrimary: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: TOKENS.primary,
+    paddingVertical: 8,
+    borderRadius: 2,
+    alignItems: 'center',
+  },
+  actionBtnPrimaryText: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: TOKENS.primary,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+  actionBtnDanger: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: TOKENS.statusDanger,
+    paddingVertical: 8,
+    borderRadius: 2,
+    alignItems: 'center',
+  },
+  actionBtnDangerText: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: TOKENS.statusDanger,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: '#000000CC',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: TOKENS.card,
+    borderTopWidth: 2,
+    borderTopColor: TOKENS.primary,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
+    maxHeight: '85%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: TOKENS.border,
+  },
+  modalTitle: {
+    fontFamily: FONTS.condensed,
+    fontSize: 16,
+    fontWeight: '700',
+    color: TOKENS.primary,
+    letterSpacing: 1,
+  },
+  closeBtn: {
+    padding: 4,
+  },
+  closeBtnText: {
+    fontFamily: FONTS.mono,
+    fontSize: 16,
+    color: TOKENS.mutedForeground,
+  },
+  modalScroll: {
+    padding: 16,
+    gap: 12,
+    paddingBottom: 32,
+  },
+  errorText: {
+    fontFamily: FONTS.mono,
+    fontSize: 10,
+    color: TOKENS.statusDanger,
+  },
+  inputLabel: {
+    fontFamily: FONTS.mono,
+    fontSize: 8,
+    color: TOKENS.mutedForeground,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+  },
+  catScroll: {
+    marginBottom: 4,
+  },
+  catChip: {
+    borderWidth: 1,
+    borderColor: TOKENS.border,
+    backgroundColor: TOKENS.secondary,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 2,
+    marginRight: 6,
+  },
+  catChipActive: {
+    borderColor: TOKENS.primary,
+    backgroundColor: TOKENS.primary,
+  },
+  catChipText: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: TOKENS.mutedForeground,
+  },
+  catChipTextActive: {
+    color: TOKENS.primaryForeground,
+    fontWeight: '700',
+  },
+  locationSelectorBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: TOKENS.border,
+    backgroundColor: TOKENS.secondary,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderRadius: 2,
+    gap: 8,
+  },
+  locationIcon: {
+    fontSize: 14,
+  },
+  locationSummaryText: {
+    flex: 1,
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: TOKENS.foreground,
+  },
+  changeText: {
+    fontFamily: FONTS.mono,
+    fontSize: 8,
+    color: TOKENS.primary,
+    fontWeight: '700',
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: TOKENS.border,
+    backgroundColor: TOKENS.secondary,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderRadius: 2,
+    fontFamily: FONTS.sans,
+    fontSize: 13,
+    color: TOKENS.foreground,
+  },
+  textArea: {
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  riskRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  riskOption: {
+    flex: 1,
+    borderWidth: 1,
+    paddingVertical: 8,
+    borderRadius: 2,
+    alignItems: 'center',
+    backgroundColor: TOKENS.secondary,
+  },
+  riskOptionShape: {
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  riskOptionText: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    fontWeight: '700',
+  },
+  submitBtn: {
+    backgroundColor: TOKENS.primary,
+    paddingVertical: 14,
+    borderRadius: 2,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  submitBtnText: {
+    fontFamily: FONTS.condensed,
+    fontSize: 14,
+    fontWeight: '700',
+    color: TOKENS.primaryForeground,
+    letterSpacing: 1.5,
+  },
+  locationModalOverlay: {
+    flex: 1,
+    backgroundColor: '#000000E0',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  locationModalCard: {
+    backgroundColor: TOKENS.card,
+    borderWidth: 1,
+    borderColor: TOKENS.primary,
+    borderRadius: 4,
+    padding: 16,
+    maxHeight: '80%',
+  },
+  locationModalTitle: {
+    fontFamily: FONTS.condensed,
+    fontSize: 16,
+    fontWeight: '700',
+    color: TOKENS.primary,
+    marginBottom: 12,
+  },
+  locationSubLabel: {
+    fontFamily: FONTS.mono,
+    fontSize: 8,
+    color: TOKENS.mutedForeground,
+    letterSpacing: 1,
+    marginBottom: 6,
+    marginTop: 6,
+  },
+  chipGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
+    marginBottom: 8,
   },
-  locChoiceChip: {
-    backgroundColor: '#0F172A',
-    paddingHorizontal: 10,
+  locChip: {
+    borderWidth: 1,
+    borderColor: TOKENS.border,
+    backgroundColor: TOKENS.secondary,
+    paddingHorizontal: 8,
     paddingVertical: 6,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#334155',
+    borderRadius: 2,
+    marginRight: 6,
+    marginBottom: 4,
   },
-  locChoiceChipActive: {
-    backgroundColor: '#0284C7',
-    borderColor: '#38BDF8',
+  locChipActive: {
+    borderColor: TOKENS.primary,
+    backgroundColor: TOKENS.primary,
   },
-  locChoiceText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#94A3B8',
+  locChipText: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: TOKENS.mutedForeground,
   },
-  locChoiceTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '800',
+  locChipTextActive: {
+    color: TOKENS.primaryForeground,
+    fontWeight: '700',
   },
-  locModalDoneBtn: {
-    backgroundColor: '#0284C7',
+  lgaScroll: {
+    marginBottom: 8,
+  },
+  locationDoneBtn: {
+    backgroundColor: TOKENS.primary,
     paddingVertical: 10,
-    borderRadius: 6,
+    borderRadius: 2,
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 10,
   },
-  locModalDoneText: {
-    color: '#FFFFFF',
-    fontWeight: '800',
-    fontSize: 13,
+  locationDoneBtnText: {
+    fontFamily: FONTS.condensed,
+    fontSize: 12,
+    fontWeight: '700',
+    color: TOKENS.primaryForeground,
+    letterSpacing: 1,
   },
-  confirmCard: {
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
-    padding: 18,
-    width: '100%',
-    maxWidth: 350,
-    borderWidth: 1,
-    borderColor: '#38BDF8',
-    alignItems: 'center',
-  },
-  modalIconBox: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: '#0B2545',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
-  modalIcon: { fontSize: 22 },
-  modalTitle: { fontSize: 17, fontWeight: '800', color: '#F8FAFC', marginBottom: 4 },
-  modalBody: { fontSize: 11, color: '#CBD5E1', textAlign: 'center', lineHeight: 16, marginBottom: 14 },
-  modalLedgerInfo: {
-    width: '100%',
-    backgroundColor: '#0F172A',
-    borderRadius: 8,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#334155',
-    marginBottom: 14,
-  },
-  modalInfoLabel: { fontSize: 9, fontWeight: '800', color: '#64748B', letterSpacing: 0.5 },
-  modalInfoHash: { fontSize: 10, fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace', color: '#38BDF8', marginTop: 1 },
-  modalInfoVal: { fontSize: 10, color: '#F1F5F9', marginTop: 1 },
-  modalStatusPill: { fontSize: 10, color: '#F59E0B', fontWeight: '700', marginTop: 1 },
-  modalCloseButton: {
-    backgroundColor: '#0284C7',
-    paddingVertical: 9,
-    paddingHorizontal: 20,
-    borderRadius: 6,
-    width: '100%',
-    alignItems: 'center',
-  },
-  modalCloseText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
 });

@@ -11,6 +11,7 @@ import {
 import { Language } from '../types';
 import { translations } from '../i18n/translations';
 import { wipeAllLocalData, getUserPin, getDuressPin } from '../db';
+import { TOKENS, FONTS, METRICS, HIT_SLOP_64 } from '../theme/tokens';
 
 interface LoginScreenProps {
   onUnlock: () => void;
@@ -98,7 +99,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#0F172A" />
+      <StatusBar barStyle="light-content" backgroundColor={TOKENS.background} />
       <View style={styles.container}>
         {/* Top Bar: Clean & Minimalist */}
         <View style={styles.topBar}>
@@ -112,6 +113,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             style={styles.langPill}
             onPress={onToggleLanguage}
             activeOpacity={0.7}
+            hitSlop={HIT_SLOP_64}
           >
             <Text style={styles.langPillText}>
               {language === 'en'
@@ -120,7 +122,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 ? '🇳🇬 HA'
                 : language === 'yo'
                 ? '🇳🇬 YO'
-                : '🇳🇬 IG'}
+                : language === 'ig'
+                ? '🇳🇬 IG'
+                : '🇫🇷 FR'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -203,6 +207,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               activeOpacity={0.6}
               style={[styles.keyButton, styles.auxKeyButton]}
               onPress={handleClear}
+              hitSlop={HIT_SLOP_64}
             >
               <Text style={styles.auxKeyText}>CLR</Text>
             </TouchableOpacity>
@@ -217,6 +222,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               activeOpacity={0.6}
               style={[styles.keyButton, styles.auxKeyButton]}
               onPress={handleDelete}
+              hitSlop={HIT_SLOP_64}
             >
               <Text style={styles.auxKeyText}>DEL</Text>
             </TouchableOpacity>
@@ -229,6 +235,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             style={styles.demoGuideButton}
             onPress={() => setShowDemoModal(true)}
             activeOpacity={0.7}
+            hitSlop={HIT_SLOP_64}
           >
             <Text style={styles.demoGuideText}>ℹ️ Evaluator Access Guide</Text>
           </TouchableOpacity>
@@ -281,7 +288,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#0F172A' },
+  safeArea: { flex: 1, backgroundColor: TOKENS.background },
   container: {
     flex: 1,
     paddingHorizontal: 24,
@@ -297,64 +304,67 @@ const styles = StyleSheet.create({
   statusPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E293B',
+    backgroundColor: TOKENS.card,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 14,
+    borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: TOKENS.border,
   },
   statusDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#38BDF8',
+    backgroundColor: TOKENS.primary,
     marginRight: 6,
   },
   statusText: {
     fontSize: 10,
-    fontWeight: '800',
-    color: '#94A3B8',
+    fontWeight: '700',
+    color: TOKENS.mutedForeground,
     letterSpacing: 0.5,
+    fontFamily: FONTS.mono,
   },
   langPill: {
-    backgroundColor: '#1E293B',
+    backgroundColor: TOKENS.card,
     paddingHorizontal: 12,
     paddingVertical: 5,
-    borderRadius: 14,
+    borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#0284C7',
+    borderColor: TOKENS.border,
   },
   langPillText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '800',
-    color: '#38BDF8',
+    color: TOKENS.primary,
+    fontFamily: FONTS.mono,
   },
   centerSection: {
     alignItems: 'center',
     marginVertical: 10,
   },
   shieldBadge: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: '#1E293B',
+    width: 56,
+    height: 56,
+    borderRadius: 4,
+    backgroundColor: TOKENS.card,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: TOKENS.border,
   },
   shieldIcon: { fontSize: 26 },
   title: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: TOKENS.foreground,
     letterSpacing: 0.3,
+    fontFamily: FONTS.mono,
   },
   subtitle: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: TOKENS.mutedForeground,
     marginTop: 4,
     textAlign: 'center',
     maxWidth: 280,
@@ -367,16 +377,16 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   dot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#475569',
+    width: 14,
+    height: 14,
+    borderRadius: 2,
+    borderWidth: 1,
+    borderColor: TOKENS.border,
     backgroundColor: 'transparent',
   },
   dotFilled: {
-    backgroundColor: '#38BDF8',
-    borderColor: '#38BDF8',
+    backgroundColor: TOKENS.primary,
+    borderColor: TOKENS.primary,
   },
   errorContainer: {
     height: 22,
@@ -384,13 +394,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   errorText: {
-    color: '#EF4444',
-    fontSize: 13,
+    color: TOKENS.riskCritical,
+    fontSize: 12,
     fontWeight: '700',
+    fontFamily: FONTS.mono,
   },
   helperText: {
-    color: '#64748B',
+    color: TOKENS.mutedForeground,
     fontSize: 11,
+    fontFamily: FONTS.mono,
   },
   keypad: {
     width: '100%',
@@ -405,27 +417,29 @@ const styles = StyleSheet.create({
   keyButton: {
     width: 68,
     height: 68,
-    borderRadius: 34,
-    backgroundColor: '#1E293B',
+    borderRadius: 6,
+    backgroundColor: TOKENS.card,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: TOKENS.border,
   },
   keyText: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '700',
-    color: '#F1F5F9',
+    color: TOKENS.foreground,
+    fontFamily: FONTS.mono,
   },
   auxKeyButton: {
-    backgroundColor: '#0F172A',
-    borderColor: '#1E293B',
+    backgroundColor: TOKENS.secondary,
+    borderColor: TOKENS.border,
   },
   auxKeyText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '800',
-    color: '#94A3B8',
+    color: TOKENS.mutedForeground,
     letterSpacing: 0.5,
+    fontFamily: FONTS.mono,
   },
   footerRow: {
     alignItems: 'center',
@@ -437,8 +451,9 @@ const styles = StyleSheet.create({
   },
   demoGuideText: {
     fontSize: 11,
-    color: '#64748B',
+    color: TOKENS.mutedForeground,
     fontWeight: '600',
+    fontFamily: FONTS.mono,
   },
   modalBackdrop: {
     flex: 1,
@@ -448,62 +463,67 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   modalContent: {
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
+    backgroundColor: TOKENS.card,
+    borderRadius: 8,
     padding: 20,
     width: '100%',
     maxWidth: 340,
     borderWidth: 1,
-    borderColor: '#38BDF8',
+    borderColor: TOKENS.primary,
   },
   modalHeading: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: TOKENS.foreground,
     marginBottom: 6,
+    fontFamily: FONTS.mono,
   },
   modalNotice: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: TOKENS.mutedForeground,
     marginBottom: 14,
     lineHeight: 16,
   },
   codeItem: {
-    backgroundColor: '#0F172A',
-    borderRadius: 8,
+    backgroundColor: TOKENS.background,
+    borderRadius: 6,
     padding: 10,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: TOKENS.border,
   },
   codeLabel: {
     fontSize: 10,
-    color: '#94A3B8',
+    color: TOKENS.mutedForeground,
     fontWeight: '700',
     textTransform: 'uppercase',
+    fontFamily: FONTS.mono,
   },
   codeVal: {
     fontSize: 18,
     fontWeight: '900',
-    color: '#38BDF8',
+    color: TOKENS.primary,
     marginVertical: 2,
     letterSpacing: 1,
+    fontFamily: FONTS.mono,
   },
   codeDesc: {
     fontSize: 11,
-    color: '#CBD5E1',
+    color: TOKENS.foreground,
     lineHeight: 15,
   },
   modalCloseButton: {
-    backgroundColor: '#0284C7',
+    backgroundColor: TOKENS.primary,
     borderRadius: 6,
-    paddingVertical: 10,
+    minHeight: METRICS.minTouchTarget,
+    justifyContent: 'center',
     alignItems: 'center',
     marginTop: 6,
   },
   modalCloseText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
+    color: TOKENS.primaryForeground,
+    fontWeight: '800',
     fontSize: 13,
+    fontFamily: FONTS.mono,
   },
 });

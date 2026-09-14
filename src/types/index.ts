@@ -26,5 +26,6 @@ export interface Report {
 export type NewReportInput = Omit<Report, 'id' | 'created_at' | 'synced'>;
 
 export type AppSecurityMode = 'LOCKED' | 'DECOY' | 'AUTHENTICATED';
-export type MainTab = 'opportunities' | 'report' | 'sync';
-export type Language = 'en' | 'ha' | 'yo' | 'ig';
+export type AppScreen = 'language' | 'secure' | 'decoy' | 'spec' | 'locked';
+export type MainTab = 'ledger' | 'opportunities' | 'sync' | 'settings';
+export type Language = 'en' | 'ha' | 'yo' | 'ig' | 'fr';

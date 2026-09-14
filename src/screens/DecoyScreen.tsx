@@ -1,482 +1,591 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
   View,
   ScrollView,
   TouchableOpacity,
-  TextInput,
   SafeAreaView,
   StatusBar,
+  TextInput,
 } from 'react-native';
+import { TOKENS, FONTS, METRICS } from '../theme/tokens';
 
-interface DecoyScreenProps {
-  onLock: () => void;
+interface Props {
+  onRestore?: () => void;
+  onLock?: () => void;
 }
 
-const REGIONS = [
-  { name: 'Kano', temp: '39°C', condition: 'Dry Haze & Harmattan Wind', humidity: '14%', wind: '19 km/h NE' },
-  { name: 'Maiduguri', temp: '41°C', condition: 'Severe Heat & Dry Breeze', humidity: '11%', wind: '22 km/h E' },
-  { name: 'Sokoto', temp: '40°C', condition: 'Intense Sunlight & Aridity', humidity: '12%', wind: '16 km/h NE' },
-  { name: 'Kaduna', temp: '34°C', condition: 'Partly Cloudy & Dry Breeze', humidity: '26%', wind: '14 km/h N' },
+const GRAIN_DATA = [
+  { name: 'Millet (Gero)', unit: '50kg bag', price: '₦8,400', unitPrice: 8400, change: '+1.2%', up: true },
+  { name: 'Sorghum (Dawa)', unit: '50kg bag', price: '₦7,200', unitPrice: 7200, change: '-0.8%', up: false },
+  { name: 'Cowpea (Wake)', unit: '50kg bag', price: '₦14,800', unitPrice: 14800, change: '+3.1%', up: true },
+  { name: 'Maize (Masara)', unit: '50kg bag', price: '₦6,600', unitPrice: 6600, change: '+0.5%', up: true },
+  { name: 'Groundnut (Gyada)', unit: '25kg bag', price: '₦11,200', unitPrice: 11200, change: '-1.4%', up: false },
+  { name: 'Rice (Shinkafa)', unit: '25kg bag', price: '₦13,500', unitPrice: 13500, change: '+2.0%', up: true },
 ];
 
-const COMMODITIES = [
-  { name: 'White Maize (Masara)', unitPrice: 78500, priceStr: '₦78,500', market: 'Dawanau Grain Market, Kano', change: '+2.1%', isUp: true },
-  { name: 'Brown Sorghum (Dawa)', unitPrice: 82000, priceStr: '₦82,000', market: 'Dawanau Grain Market, Kano', change: '-0.5%', isUp: false },
-  { name: 'Pearl Millet (Maiwa)', unitPrice: 75000, priceStr: '₦75,000', market: 'Monday Market, Maiduguri', change: '0.0%', isUp: null },
-  { name: 'White Cowpeas (Wake)', unitPrice: 118000, priceStr: '₦118,000', market: 'Kafanchan Market, Kaduna', change: '+4.3%', isUp: true },
+const WEATHER = [
+  { day: 'Today', icon: '☀', high: 38, low: 24, desc: 'Sunny & Dry' },
+  { day: 'Mon', icon: '🌤', high: 36, low: 23, desc: 'Mostly Clear' },
+  { day: 'Tue', icon: '🌥', high: 34, low: 22, desc: 'Partly Cloudy' },
+  { day: 'Wed', icon: '☀', high: 39, low: 25, desc: 'Sunny' },
+  { day: 'Thu', icon: '☀', high: 40, low: 26, desc: 'Hot & Dry' },
 ];
 
-export const DecoyScreen: React.FC<DecoyScreenProps> = ({ onLock }) => {
-  const [selectedRegionIndex, setSelectedRegionIndex] = useState<number>(0);
-  const [calculatorCropIdx, setCalculatorCropIdx] = useState<number>(0);
-  const [quantityBags, setQuantityBags] = useState<string>('5');
+const ALERTS = [
+  'Maiduguri market: New price ceiling for millet effective Mon Sep 14',
+  'Borno: Livestock fair, Maiduguri Monday Market, 06:00–14:00',
+  'Rain alert: Possible light showers — Ngala area, Wednesday',
+];
 
-  const currentRegion = REGIONS[selectedRegionIndex];
-  const selectedCrop = COMMODITIES[calculatorCropIdx];
-  const numBags = Math.max(1, parseInt(quantityBags || '1', 10) || 1);
-  const calculatedTotal = (selectedCrop.unitPrice * numBags).toLocaleString();
+export const DecoyScreen: React.FC<Props> = ({ onRestore, onLock }) => {
+  const [calcGrainIndex, setCalcGrainIndex] = useState(0);
+  const [bagCount, setBagCount] = useState('10');
+
+  // Stealth Restore Mechanism: 2-second continuous long press on invisible bottom-left 48x48dp zone
+  const restoreTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handlePressIn = useCallback(() => {
+    restoreTimer.current = setTimeout(() => {
+      if (onRestore) {
+        onRestore();
+      } else if (onLock) {
+        onLock();
+      }
+    }, 2000);
+  }, [onRestore, onLock]);
+
+  const handlePressOut = useCallback(() => {
+    if (restoreTimer.current) {
+      clearTimeout(restoreTimer.current);
+      restoreTimer.current = null;
+    }
+  }, []);
+
+  const currentGrain = GRAIN_DATA[calcGrainIndex];
+  const countNum = parseInt(bagCount, 10) || 0;
+  const estimatedCost = countNum * currentGrain.unitPrice;
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#041A0F" />
+      <StatusBar barStyle="dark-content" backgroundColor={TOKENS.decoyBg} />
 
-      {/* Top Header: High-Contrast Forest Header */}
-      <View style={styles.topHeader}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.brandTitle}>🌾 Sahel AgriWeather & Grain Bulletin</Text>
-          <Text style={styles.brandSubtitle}>NAERLS Agro-Extension & Commodity Index</Text>
-        </View>
-        <TouchableOpacity style={styles.lockButton} onPress={onLock} activeOpacity={0.8}>
-          <Text style={styles.lockButtonText}>🔒 Exit</Text>
-        </TouchableOpacity>
+      {/* Simulated System Status Bar */}
+      <View style={styles.statusBarSim}>
+        <Text style={styles.clockSim}>09:41</Text>
+        <Text style={styles.systemSim}>▲▲▲ WiFi 🔋85%</Text>
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {/* Offline Broadcast Badge */}
-        <View style={styles.cachePill}>
-          <View style={styles.pulseDot} />
-          <Text style={styles.cacheText}>OFFLINE RADIO BROADCAST CACHE VALIDATED</Text>
+      {/* Official Government Header — BOSADP Green */}
+      <View style={styles.headerBanner}>
+        <View style={styles.headerRow}>
+          <View style={styles.headerTitles}>
+            <Text style={styles.headerMainTitle}>Borno Grain & Weather</Text>
+            <Text style={styles.headerSubtitle}>BOSADP Market Information Service</Text>
+          </View>
+          <View style={styles.headerEmblem}>
+            <Text style={styles.emblemIcon}>🌾</Text>
+          </View>
+        </View>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
+        {/* Urgent Market Notice Bar */}
+        <View style={styles.noticeTicker}>
+          <Text style={styles.noticeTag}>⚑ NOTICE:</Text>
+          <Text style={styles.noticeMessage}>
+            Maiduguri market: New price ceiling for millet effective Mon Sep 14
+          </Text>
         </View>
 
-        {/* Region Selector Chips */}
-        <View style={styles.regionRow}>
-          {REGIONS.map((reg, idx) => {
-            const isSelected = idx === selectedRegionIndex;
-            return (
-              <TouchableOpacity
-                key={reg.name}
-                style={[styles.regionChip, isSelected && styles.regionChipActive]}
-                onPress={() => setSelectedRegionIndex(idx)}
-              >
-                <Text style={[styles.regionChipText, isSelected && styles.regionChipTextActive]}>
-                  {reg.name}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {/* Weather Card: High Contrast */}
+        {/* 5-Day Weather Forecast */}
         <View style={styles.weatherCard}>
-          <View style={styles.weatherTop}>
-            <View>
-              <Text style={styles.weatherZone}>{currentRegion.name} Agro-Climatic Zone</Text>
-              <Text style={styles.weatherDesc}>{currentRegion.condition}</Text>
-            </View>
-            <Text style={styles.weatherTemp}>{currentRegion.temp}</Text>
-          </View>
-
-          <View style={styles.metricsRow}>
-            <View style={styles.metricItem}>
-              <Text style={styles.metricLabel}>Humidity</Text>
-              <Text style={styles.metricVal}>{currentRegion.humidity}</Text>
-            </View>
-            <View style={styles.metricDivider} />
-            <View style={styles.metricItem}>
-              <Text style={styles.metricLabel}>Wind Vector</Text>
-              <Text style={styles.metricVal}>{currentRegion.wind}</Text>
-            </View>
-            <View style={styles.metricDivider} />
-            <View style={styles.metricItem}>
-              <Text style={styles.metricLabel}>Soil Moisture</Text>
-              <Text style={styles.metricVal}>Low (Dry)</Text>
-            </View>
-          </View>
-
-          <View style={styles.advisoryBox}>
-            <Text style={styles.advisoryText}>
-              ⚠️ <Text style={{ fontWeight: '800' }}>Agronomy Advisory:</Text> Severe harmattan aridity. Ensure triple hermetic bags for cowpeas to prevent storage weevil infestation.
-            </Text>
-          </View>
+          <Text style={styles.sectionCaption}>5-DAY FORECAST · MAIDUGURI</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.weatherRow}>
+            {WEATHER.map((w, idx) => (
+              <View
+                key={w.day}
+                style={[
+                  styles.weatherDayItem,
+                  idx === 0 && styles.weatherTodayHighlight,
+                ]}
+              >
+                <Text style={styles.weatherDayLabel}>{w.day}</Text>
+                <Text style={styles.weatherEmoji}>{w.icon}</Text>
+                <Text style={styles.weatherHighTemp}>{w.high}°</Text>
+                <Text style={styles.weatherLowTemp}>{w.low}°</Text>
+              </View>
+            ))}
+          </ScrollView>
         </View>
 
-        {/* Wholesale Grain Prices */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Wholesale Grain Index (100kg Bag)</Text>
-          <Text style={styles.sectionSub}>Dawanau & Monday Markets</Text>
+        {/* Commodity Prices Section */}
+        <View style={styles.priceSectionHeader}>
+          <Text style={styles.sectionCaption}>MARKET PRICES · BORNO STATE</Text>
+          <Text style={styles.updateTime}>Updated: 09:00 today</Text>
         </View>
 
-        {COMMODITIES.map((item, idx) => {
-          const isSelected = calculatorCropIdx === idx;
-          return (
-            <TouchableOpacity
-              key={idx}
-              style={[styles.commodityCard, isSelected && styles.commodityCardSelected]}
-              onPress={() => setCalculatorCropIdx(idx)}
-              activeOpacity={0.8}
-            >
+        {/* Commodity Table Header */}
+        <View style={styles.tableContainer}>
+          <View style={styles.tableHeaderRow}>
+            <Text style={[styles.tableColTitle, { flex: 1 }]}>COMMODITY</Text>
+            <Text style={[styles.tableColTitle, { width: 85, textAlign: 'right', marginRight: 12 }]}>PRICE</Text>
+            <Text style={[styles.tableColTitle, { width: 55, textAlign: 'center' }]}>CHG</Text>
+          </View>
+
+          {/* Commodity Items */}
+          {GRAIN_DATA.map((item) => (
+            <View key={item.name} style={styles.tableDataRow}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.commodityName}>{item.name}</Text>
-                <Text style={styles.commodityMarket}>{item.market}</Text>
+                <Text style={styles.commodityUnit}>{item.unit}</Text>
               </View>
-
-              <View style={styles.priceBlock}>
-                <Text style={styles.commodityPrice}>{item.priceStr}</Text>
+              <Text style={styles.commodityPrice}>{item.price}</Text>
+              <View
+                style={[
+                  styles.changePill,
+                  item.up ? styles.changeUpPill : styles.changeDownPill,
+                ]}
+              >
                 <Text
                   style={[
-                    styles.commodityChange,
-                    item.isUp === true && styles.changeUp,
-                    item.isUp === false && styles.changeDown,
-                    item.isUp === null && styles.changeFlat,
+                    styles.changePillText,
+                    item.up ? styles.changeUpText : styles.changeDownText,
                   ]}
                 >
-                  {item.change}
+                  {item.up ? '▲' : '▼'} {item.change}
                 </Text>
               </View>
-            </TouchableOpacity>
-          );
-        })}
+            </View>
+          ))}
+        </View>
 
-        {/* Interactive Batch Price Calculator */}
-        <View style={styles.calcContainer}>
-          <Text style={styles.calcHeader}>🧮 Grain Batch Value Calculator</Text>
-          <Text style={styles.calcSelectedCrop}>Selected: {selectedCrop.name}</Text>
+        {/* Camouflage Interactive Tool: Grain Price Calculator */}
+        <View style={styles.calcCard}>
+          <Text style={styles.sectionCaption}>COMMODITY BULK CALCULATOR</Text>
+          <Text style={styles.calcDescription}>
+            Official BOSADP producer conversion tool for market aggregators.
+          </Text>
 
-          <View style={styles.calcInputsRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.calcInputLabel}>Enter Bags (100kg):</Text>
+          <View style={styles.grainChipRow}>
+            {GRAIN_DATA.slice(0, 3).map((g, idx) => (
+              <TouchableOpacity
+                key={g.name}
+                onPress={() => setCalcGrainIndex(idx)}
+                style={[
+                  styles.grainChip,
+                  calcGrainIndex === idx && styles.grainChipActive,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.grainChipText,
+                    calcGrainIndex === idx && styles.grainChipTextActive,
+                  ]}
+                >
+                  {g.name.split(' ')[0]}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <View style={styles.calcInputRow}>
+            <View style={styles.calcInputGroup}>
+              <Text style={styles.calcInputLabel}>BAG QUANTITY</Text>
               <TextInput
-                style={styles.calcTextInput}
+                style={styles.calcInput}
+                value={bagCount}
+                onChangeText={setBagCount}
                 keyboardType="numeric"
-                value={quantityBags}
-                onChangeText={setQuantityBags}
                 maxLength={4}
               />
             </View>
-
-            <View style={styles.calcTotalCard}>
-              <Text style={styles.calcTotalLabel}>Total Benchmark Value</Text>
-              <Text style={styles.calcTotalValue}>₦{calculatedTotal}</Text>
+            <View style={styles.calcTotalGroup}>
+              <Text style={styles.calcInputLabel}>ESTIMATED COST</Text>
+              <Text style={styles.calcTotalText}>₦{estimatedCost.toLocaleString()}</Text>
             </View>
           </View>
         </View>
 
-        <View style={styles.footerNotice}>
-          <Text style={styles.footerNoticeText}>
-            National Agricultural Extension & Research Liaison Services (NAERLS)
-          </Text>
-          <Text style={styles.footerNoticeSub}>Public Agro-Climatic Dissemination Bulletin</Text>
+        {/* Market Notices */}
+        <View style={styles.noticesCard}>
+          <Text style={styles.sectionCaption}>MARKET NOTICES</Text>
+          {ALERTS.map((alert, i) => (
+            <View key={i} style={styles.noticeBulletRow}>
+              <View style={styles.noticeGreenBar} />
+              <Text style={styles.noticeItemText}>{alert}</Text>
+            </View>
+          ))}
         </View>
       </ScrollView>
+
+      {/* Official Government Footer & Invisible Restore Zone */}
+      <View style={styles.footerContainer}>
+        <Text style={styles.footerLegalText}>
+          Borno State ATASP-C · Data: FMARD/CBN · Not for commercial use
+        </Text>
+
+        {/* INVISIBLE RESTORE ZONE (48×48dp at bottom-left) */}
+        <TouchableOpacity
+          style={styles.invisibleRestoreZone}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          activeOpacity={1}
+          accessible={false}
+        />
+      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#041A0F' },
-  topHeader: {
-    backgroundColor: '#0A2617',
-    paddingHorizontal: 18,
-    paddingVertical: 14,
+  safeArea: {
+    flex: 1,
+    backgroundColor: TOKENS.decoyBg,
+  },
+  statusBarSim: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#17472C',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 4,
+    backgroundColor: TOKENS.decoyBg,
   },
-  brandTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    letterSpacing: 0.3,
-  },
-  brandSubtitle: {
+  clockSim: {
+    fontFamily: FONTS.mono,
     fontSize: 11,
-    color: '#D1FAE5',
-    marginTop: 2,
+    color: '#444444',
   },
-  lockButton: {
-    backgroundColor: '#165330',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#34D399',
-    marginLeft: 10,
+  systemSim: {
+    fontFamily: FONTS.mono,
+    fontSize: 11,
+    color: '#555555',
   },
-  lockButtonText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#FFFFFF',
+  headerBanner: {
+    backgroundColor: TOKENS.decoyHeader,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  scrollView: { flex: 1, backgroundColor: '#041A0F' },
-  scrollContent: { padding: 18, paddingBottom: 40 },
-  cachePill: {
+  headerRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#0A2617',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: '#17472C',
   },
-  pulseDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#34D399',
-    marginRight: 8,
+  headerTitles: {
+    flex: 1,
   },
-  cacheText: {
-    fontSize: 11,
-    fontWeight: '800',
+  headerMainTitle: {
+    fontFamily: FONTS.condensed,
+    fontSize: 18,
+    fontWeight: '700',
     color: '#FFFFFF',
     letterSpacing: 0.5,
   },
-  regionRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 14,
+  headerSubtitle: {
+    fontFamily: FONTS.mono,
+    fontSize: 10,
+    color: '#A5D6A7',
+    marginTop: 2,
+    letterSpacing: 0.5,
   },
-  regionChip: {
-    flex: 1,
-    paddingVertical: 8,
+  headerEmblem: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#2E7D32',
+    borderWidth: 2,
+    borderColor: '#4CAF50',
+    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0C2B1B',
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#1D4F35',
+    marginLeft: 12,
   },
-  regionChipActive: {
-    backgroundColor: '#10B981',
-    borderColor: '#34D399',
+  emblemIcon: {
+    fontSize: 18,
   },
-  regionChipText: {
-    fontSize: 12,
+  scrollContent: {
+    paddingBottom: 24,
+  },
+  noticeTicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF9C4',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F9A825',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    gap: 8,
+  },
+  noticeTag: {
+    fontSize: 11,
     fontWeight: '700',
-    color: '#D1FAE5',
+    color: '#F57F17',
   },
-  regionChipTextActive: {
-    color: '#041A0F',
-    fontWeight: '900',
+  noticeMessage: {
+    flex: 1,
+    fontFamily: FONTS.mono,
+    fontSize: 10,
+    color: '#5D4037',
   },
   weatherCard: {
-    backgroundColor: '#0C2B1B',
-    borderRadius: 10,
-    padding: 18,
-    marginBottom: 18,
-    borderWidth: 1,
-    borderColor: '#1D4F35',
-  },
-  weatherTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  weatherZone: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
-  weatherDesc: {
-    fontSize: 12,
-    color: '#D1FAE5',
-    marginTop: 3,
-  },
-  weatherTemp: {
-    fontSize: 32,
-    fontWeight: '900',
-    color: '#FDE047',
-  },
-  metricsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#061D12',
-    borderRadius: 8,
+    backgroundColor: TOKENS.decoySurface,
+    borderBottomWidth: 1,
+    borderBottomColor: TOKENS.decoyBorder,
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingHorizontal: 14,
-    marginTop: 14,
-    borderWidth: 1,
-    borderColor: '#133E28',
   },
-  metricItem: {
-    flex: 1,
+  sectionCaption: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: '#888888',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  weatherRow: {
+    gap: 8,
+    paddingVertical: 2,
+  },
+  weatherDayItem: {
+    width: 56,
     alignItems: 'center',
+    paddingVertical: 8,
+    borderRadius: 2,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
-  metricDivider: {
-    width: 1,
-    height: 24,
-    backgroundColor: '#1D4F35',
+  weatherTodayHighlight: {
+    backgroundColor: '#E8F5E9',
+    borderColor: '#A5D6A7',
   },
-  metricLabel: {
-    fontSize: 10,
-    color: '#A7F3D0',
-    fontWeight: '600',
+  weatherDayLabel: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: '#666666',
   },
-  metricVal: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginTop: 2,
+  weatherEmoji: {
+    fontSize: 20,
+    marginVertical: 4,
   },
-  advisoryBox: {
-    marginTop: 12,
-    backgroundColor: '#061D12',
-    borderRadius: 6,
-    padding: 10,
-    borderLeftWidth: 4,
-    borderLeftColor: '#FDE047',
-  },
-  advisoryText: {
+  weatherHighTemp: {
     fontSize: 12,
-    color: '#FFFFFF',
-    lineHeight: 17,
+    fontWeight: '700',
+    color: '#1B5E20',
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    marginBottom: 10,
+  weatherLowTemp: {
+    fontSize: 9,
+    color: '#888888',
   },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
-  sectionSub: {
-    fontSize: 11,
-    color: '#A7F3D0',
-  },
-  commodityCard: {
-    backgroundColor: '#0C2B1B',
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 10,
+  priceSectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#1D4F35',
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 4,
   },
-  commodityCardSelected: {
-    borderColor: '#FDE047',
-    backgroundColor: '#0F3622',
+  updateTime: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: '#888888',
+  },
+  tableContainer: {
+    paddingHorizontal: 12,
+    gap: 6,
+  },
+  tableHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8F5E9',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 2,
+  },
+  tableColTitle: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: '#555555',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  tableDataRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: TOKENS.decoySurface,
+    borderWidth: 1,
+    borderColor: TOKENS.decoyBorder,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 2,
   },
   commodityName: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#FFFFFF',
+    fontFamily: FONTS.condensed,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1A1A1A',
   },
-  commodityMarket: {
-    fontSize: 11,
-    color: '#D1FAE5',
-    marginTop: 2,
-  },
-  priceBlock: {
-    alignItems: 'flex-end',
+  commodityUnit: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: '#888888',
+    marginTop: 1,
   },
   commodityPrice: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: '#FDE047',
-  },
-  commodityChange: {
-    fontSize: 11,
-    fontWeight: '800',
-    marginTop: 2,
-  },
-  changeUp: { color: '#4ADE80' },
-  changeDown: { color: '#F87171' },
-  changeFlat: { color: '#CBD5E1' },
-  calcContainer: {
-    backgroundColor: '#0A2617',
-    borderRadius: 10,
-    padding: 16,
-    marginTop: 8,
-    marginBottom: 18,
-    borderWidth: 1,
-    borderColor: '#1D4F35',
-  },
-  calcHeader: {
+    fontFamily: FONTS.mono,
     fontSize: 14,
-    fontWeight: '800',
-    color: '#FFFFFF',
+    fontWeight: '700',
+    color: '#1B5E20',
+    width: 85,
+    textAlign: 'right',
+    marginRight: 12,
   },
-  calcSelectedCrop: {
-    fontSize: 12,
-    color: '#D1FAE5',
-    marginTop: 2,
-    marginBottom: 12,
+  changePill: {
+    width: 55,
+    paddingVertical: 2,
+    borderRadius: 2,
+    alignItems: 'center',
   },
-  calcInputsRow: {
+  changeUpPill: {
+    backgroundColor: '#E8F5E9',
+  },
+  changeDownPill: {
+    backgroundColor: '#FFEBEE',
+  },
+  changePillText: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    fontWeight: '700',
+  },
+  changeUpText: {
+    color: '#2E7D32',
+  },
+  changeDownText: {
+    color: '#C62828',
+  },
+  calcCard: {
+    backgroundColor: TOKENS.decoySurface,
+    borderWidth: 1,
+    borderColor: TOKENS.decoyBorder,
+    marginHorizontal: 12,
+    marginTop: 14,
+    padding: 12,
+    borderRadius: 2,
+  },
+  calcDescription: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: '#666666',
+    marginBottom: 10,
+  },
+  grainChipRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 10,
+  },
+  grainChip: {
+    flex: 1,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: TOKENS.decoyBorder,
+    borderRadius: 2,
+    alignItems: 'center',
+    backgroundColor: '#FAFAFA',
+  },
+  grainChipActive: {
+    backgroundColor: '#E8F5E9',
+    borderColor: '#2E7D32',
+  },
+  grainChipText: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    color: '#555555',
+  },
+  grainChipTextActive: {
+    color: '#1B5E20',
+    fontWeight: '700',
+  },
+  calcInputRow: {
     flexDirection: 'row',
     gap: 12,
     alignItems: 'center',
   },
+  calcInputGroup: {
+    flex: 1,
+  },
   calcInputLabel: {
-    fontSize: 11,
-    color: '#D1FAE5',
-    fontWeight: '700',
-    marginBottom: 4,
+    fontFamily: FONTS.mono,
+    fontSize: 8,
+    color: '#888888',
+    marginBottom: 2,
   },
-  calcTextInput: {
-    backgroundColor: '#041A0F',
+  calcInput: {
     borderWidth: 1,
-    borderColor: '#34D399',
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    color: '#FFFFFF',
-    fontWeight: '900',
+    borderColor: TOKENS.decoyBorder,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    fontFamily: FONTS.mono,
+    fontSize: 13,
+    color: '#1A1A1A',
+    borderRadius: 2,
+  },
+  calcTotalGroup: {
+    flex: 1.2,
+  },
+  calcTotalText: {
+    fontFamily: FONTS.mono,
     fontSize: 16,
-  },
-  calcTotalCard: {
-    flex: 1.3,
-    backgroundColor: '#041A0F',
-    borderRadius: 6,
-    padding: 10,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#FDE047',
-  },
-  calcTotalLabel: {
-    fontSize: 10,
-    color: '#D1FAE5',
     fontWeight: '700',
+    color: '#1B5E20',
   },
-  calcTotalValue: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#FDE047',
+  noticesCard: {
+    backgroundColor: TOKENS.decoySurface,
+    borderWidth: 1,
+    borderColor: TOKENS.decoyBorder,
+    marginHorizontal: 12,
+    marginTop: 14,
+    padding: 12,
+    borderRadius: 2,
+  },
+  noticeBulletRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    marginBottom: 8,
+  },
+  noticeGreenBar: {
+    width: 2,
+    height: 14,
+    backgroundColor: '#A5D6A7',
     marginTop: 2,
   },
-  footerNotice: {
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  footerNoticeText: {
+  noticeItemText: {
+    flex: 1,
     fontSize: 11,
-    color: '#D1FAE5',
+    color: '#444444',
+    lineHeight: 16,
+  },
+  footerContainer: {
+    backgroundColor: '#EDEAE0',
+    borderTopWidth: 1,
+    borderTopColor: TOKENS.decoyBorder,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    position: 'relative',
+  },
+  footerLegalText: {
+    fontFamily: FONTS.mono,
+    fontSize: 8,
+    color: '#999999',
     textAlign: 'center',
   },
-  footerNoticeSub: {
-    fontSize: 10,
-    color: '#6EE7B7',
-    marginTop: 2,
+  invisibleRestoreZone: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    width: METRICS.minTouchTarget,
+    height: METRICS.minTouchTarget,
+    backgroundColor: 'transparent',
   },
 });
