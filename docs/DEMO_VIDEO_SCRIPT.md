@@ -6,7 +6,7 @@
 ### [0:00 - 0:30] INTRODUCTION & THE HIGH-RISK CONTEXT
 - **Visual:** Open on the Eto Lock Screen (`LoginScreen.tsx`). Show high-contrast tactile PIN pad.
 - **Narrator Audio:**
-  > "Welcome to Eto. In Northern Nigeria and across the Sahel, community peace monitors and rural citizens face an impossible dilemma. Millions in civic grants and agricultural relief go unclaimed due to zero connectivity and information blackouts. Meanwhile, field monitors reporting on borehole disputes or diverted aid risk their lives every time they pass through a military or insurgent checkpoint.
+  > "Welcome to Eto. In Northern Nigeria and across the Sahel, community peace monitors and rural citizens face an impossible dilemma. Millions in civic grants and agricultural relief go unclaimed due to zero connectivity and information blackouts. Meanwhile, field monitors reporting on borehole disputes or diverted aid risk their lives if stopped by bandits, unknown armed groups, or illegal roadblocks.
   > Eto is an offline-first, local-ledger mobile app built to solve this—designed specifically for 1GB RAM Android Go devices and high-risk security environments."
 
 ---
@@ -15,8 +15,8 @@
 - **Visual:** Enter Duress PIN `9999` on the keypad.
 - **Action:** App immediately transitions to the **Sahel AgriWeather & Grain Market Bulletin** (`DecoyScreen.tsx`).
 - **Narrator Audio:**
-  > "Imagine you are stopped at a checkpoint and ordered to unlock your phone. Instead of entering your real PIN, you enter duress PIN 9-9-9-9. Instantly, without a second's delay, Eto transforms into a harmless rural weather and grain market monitor.
-  > The soldier or patrol sees live wholesale grain prices for Dawanau Market in Kano, dry haze weather advisories, and an interactive grain sack calculator. There is zero trace in memory, DOM, or storage of any civic reporting.
+  > "Imagine you are stopped at an illegal roadblock by armed men and ordered to unlock your phone. Instead of entering your real PIN, you enter duress PIN 9-9-9-9. Instantly, without a second's delay, Eto transforms into a harmless rural weather and grain market monitor.
+  > Any hostile interrogator sees live wholesale grain prices for Dawanau Market in Kano, dry haze weather advisories, and an interactive grain sack calculator. There is zero trace in memory, DOM, or storage of any civic reporting.
   > If danger is imminent, typing panic PIN 0-0-0-0 nukes the local SQLite database completely in 100 milliseconds."
 
 ---

@@ -62,7 +62,7 @@ The Decoy screen is not an empty dummy; it is a **fully functional agricultural 
 - 5-day Maiduguri weather forecast strip with precipitation warnings.
 - Interactive Grain Sack Cost Calculator (bags × unit price).
 - Authentic Borno State Agricultural Development Programme (BOSADP) and ATASP-C / FMARD municipal notices.
-- A checkpoint soldier inspecting the phone sees an ordinary, non-suspicious farmer's market app.
+- Any hostile armed group, bandit, or interrogator inspecting the phone sees an ordinary, non-suspicious farmer's market app.
 
 ### Zero-PII & Forensic Protection
 ETO enforces a strict Zero-PII policy:

@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 
 export const TOKENS = {
-  // ETO Secure State — Military Terminal Dark (from Figma Design Specification)
+  // ETO Secure State — Tactical Field Terminal Dark (from Figma Design Specification)
   background: '#0A0C0E',
   foreground: '#F0EDE6',
   card: '#131619',

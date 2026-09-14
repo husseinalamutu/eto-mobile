@@ -319,7 +319,7 @@ export default function App() {
         )}
       </View>
 
-      {/* High-Contrast Military Terminal Bottom Tab Bar */}
+      {/* High-Contrast Tactical Field Terminal Bottom Tab Bar */}
       <View style={styles.tabBar}>
         <TouchableOpacity
           style={[styles.tabButton, activeTab === 'ledger' && styles.tabButtonActive]}

@@ -10,7 +10,7 @@
 
 It addresses two life-or-death challenges in emerging and conflict-affected markets:
 1. **The Information Blackout:** Millions in verified public grants, agricultural subsidies, and free legal aid go unclaimed because announcements are fragmented, complex, or require internet connectivity.
-2. **The Checkpoint Peril:** Community monitors who record resource conflicts (e.g. borehole disputes, grazing land friction, diverted relief aid) face harassment, phone confiscation, or physical violence at armed military/insurgent checkpoints.
+2. **The Armed Roadblock Peril:** Community monitors who record resource conflicts (e.g. borehole disputes, grazing land friction, diverted relief aid) face harassment, phone confiscation, or physical violence at illegal roadblocks mounted by bandits, unknown armed men, or insurgents.
 
 Eto solves this with a **Dual-State Identity**: a secure civic ledger for safe environments, and an instantaneous, completely harmless **Decoy Camouflage Screen** (an authentic grain price and weather monitor) if forced to unlock the device under duress.
 
@@ -31,7 +31,7 @@ The designer must design for real conditions on the ground:
 1. **High Contrast First:** Deep off-black backgrounds (`#0F172A`), high-visibility text (`#F8FAFC`), and stark contrast borders (`#334155`). Never use subtle light-gray text on white.
 2. **Muscle Memory Over Precision:** Critical safety actions (like the emergency lock button or tactile PIN pad) must be accessible within 100 milliseconds without requiring precise motor skills.
 3. **Sequential Clarity (Actionable Steps):** Do not show walls of text. Show numbered, modular badges (Step 1, Step 2, Step 3) so low-literacy users can follow instructions or have them read aloud.
-4. **Camouflage Authenticity:** The decoy mode cannot look like a generic placeholder. It must look 100% authentic to an interrogating soldier or police officer.
+4. **Camouflage Authenticity:** The decoy mode cannot look like a generic placeholder. It must look 100% authentic to any armed group, bandit, or hostile interrogator demanding to inspect the device.
 
 ---
 
