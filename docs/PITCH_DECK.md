@@ -18,8 +18,8 @@
 ### Operating in Information Blackouts & Checkpoint Peril
 1. **Resource Shocks Escalate Into Violence:**
    In the Sahel, communal conflicts (pastoralist-farmer friction) rarely start with ideology—they ignite over broken solar boreholes, contested grazing routes, or diverted fertilizer/seed vouchers.
-2. **Physical Peril at Checkpoints:**
-   Community peace monitors face severe danger at armed checkpoints. Carrying a smartphone with human rights or civic monitoring records can be a death sentence.
+2. **Physical Peril at Roadblocks & Bandit Stops:**
+   Community peace monitors face severe danger at armed roadblocks and bandit stops. Carrying a smartphone with sensitive incident monitoring or dispute records can be a death sentence.
 3. **The Recents Snapshot Leak:**
    Even when an app is closed, Android OS captures unencrypted bitmap snapshots of active windows for the multitasking "Recents" carousel, exposing monitors during manual phone inspections.
 4. **Hardware Poverty:**
