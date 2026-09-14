@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -11,7 +11,8 @@ import {
 import { Language } from '../types';
 import { translations } from '../i18n/translations';
 import { wipeAllLocalData, getUserPin, getDuressPin } from '../db';
-import { TOKENS, FONTS, METRICS, HIT_SLOP_64 } from '../theme/tokens';
+import { ThemeTokens, FONTS, METRICS, HIT_SLOP_64 } from '../theme/tokens';
+import { useTheme } from '../theme/ThemeContext';
 
 interface LoginScreenProps {
   onUnlock: () => void;
@@ -35,6 +36,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const [duressPin, setDuressPin] = useState<string>('9999');
   const [showDemoModal, setShowDemoModal] = useState<boolean>(false);
 
+  const { theme, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
   const t = translations[language];
 
   // Load configured user PIN and duress PIN from secure SQLite store
@@ -99,7 +102,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={TOKENS.background} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
       <View style={styles.container}>
         {/* Top Bar: Clean & Minimalist */}
         <View style={styles.topBar}>
@@ -287,8 +290,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: TOKENS.background },
+const createStyles = (theme: ThemeTokens, isDark: boolean) => StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: theme.background },
   container: {
     flex: 1,
     paddingHorizontal: 24,
@@ -304,39 +307,39 @@ const styles = StyleSheet.create({
   statusPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: TOKENS.card,
+    backgroundColor: theme.card,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: TOKENS.border,
+    borderColor: theme.border,
   },
   statusDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: TOKENS.primary,
+    backgroundColor: theme.primary,
     marginRight: 6,
   },
   statusText: {
     fontSize: 10,
     fontWeight: '700',
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
     letterSpacing: 0.5,
     fontFamily: FONTS.mono,
   },
   langPill: {
-    backgroundColor: TOKENS.card,
+    backgroundColor: theme.card,
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: TOKENS.border,
+    borderColor: theme.border,
   },
   langPillText: {
     fontSize: 11,
     fontWeight: '800',
-    color: TOKENS.primary,
+    color: theme.primary,
     fontFamily: FONTS.mono,
   },
   centerSection: {
@@ -347,24 +350,24 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 4,
-    backgroundColor: TOKENS.card,
+    backgroundColor: theme.card,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: TOKENS.border,
+    borderColor: theme.border,
   },
   shieldIcon: { fontSize: 26 },
   title: {
     fontSize: 20,
     fontWeight: '800',
-    color: TOKENS.foreground,
+    color: theme.foreground,
     letterSpacing: 0.3,
     fontFamily: FONTS.mono,
   },
   subtitle: {
     fontSize: 12,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
     marginTop: 4,
     textAlign: 'center',
     maxWidth: 280,
@@ -381,12 +384,12 @@ const styles = StyleSheet.create({
     height: 14,
     borderRadius: 2,
     borderWidth: 1,
-    borderColor: TOKENS.border,
+    borderColor: theme.border,
     backgroundColor: 'transparent',
   },
   dotFilled: {
-    backgroundColor: TOKENS.primary,
-    borderColor: TOKENS.primary,
+    backgroundColor: theme.primary,
+    borderColor: theme.primary,
   },
   errorContainer: {
     height: 22,
@@ -394,13 +397,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   errorText: {
-    color: TOKENS.riskCritical,
+    color: theme.riskCritical,
     fontSize: 12,
     fontWeight: '700',
     fontFamily: FONTS.mono,
   },
   helperText: {
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
     fontSize: 11,
     fontFamily: FONTS.mono,
   },
@@ -418,26 +421,26 @@ const styles = StyleSheet.create({
     width: 68,
     height: 68,
     borderRadius: 6,
-    backgroundColor: TOKENS.card,
+    backgroundColor: theme.card,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: TOKENS.border,
+    borderColor: theme.border,
   },
   keyText: {
     fontSize: 24,
     fontWeight: '700',
-    color: TOKENS.foreground,
+    color: theme.foreground,
     fontFamily: FONTS.mono,
   },
   auxKeyButton: {
-    backgroundColor: TOKENS.secondary,
-    borderColor: TOKENS.border,
+    backgroundColor: theme.secondary,
+    borderColor: theme.border,
   },
   auxKeyText: {
     fontSize: 12,
     fontWeight: '800',
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
     letterSpacing: 0.5,
     fontFamily: FONTS.mono,
   },
@@ -451,7 +454,7 @@ const styles = StyleSheet.create({
   },
   demoGuideText: {
     fontSize: 11,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
     fontWeight: '600',
     fontFamily: FONTS.mono,
   },
@@ -463,38 +466,38 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   modalContent: {
-    backgroundColor: TOKENS.card,
+    backgroundColor: theme.card,
     borderRadius: 8,
     padding: 20,
     width: '100%',
     maxWidth: 340,
     borderWidth: 1,
-    borderColor: TOKENS.primary,
+    borderColor: theme.primary,
   },
   modalHeading: {
     fontSize: 16,
     fontWeight: '800',
-    color: TOKENS.foreground,
+    color: theme.foreground,
     marginBottom: 6,
     fontFamily: FONTS.mono,
   },
   modalNotice: {
     fontSize: 11,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
     marginBottom: 14,
     lineHeight: 16,
   },
   codeItem: {
-    backgroundColor: TOKENS.background,
+    backgroundColor: theme.background,
     borderRadius: 6,
     padding: 10,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: TOKENS.border,
+    borderColor: theme.border,
   },
   codeLabel: {
     fontSize: 10,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
     fontWeight: '700',
     textTransform: 'uppercase',
     fontFamily: FONTS.mono,
@@ -502,18 +505,18 @@ const styles = StyleSheet.create({
   codeVal: {
     fontSize: 18,
     fontWeight: '900',
-    color: TOKENS.primary,
+    color: theme.primary,
     marginVertical: 2,
     letterSpacing: 1,
     fontFamily: FONTS.mono,
   },
   codeDesc: {
     fontSize: 11,
-    color: TOKENS.foreground,
+    color: theme.foreground,
     lineHeight: 15,
   },
   modalCloseButton: {
-    backgroundColor: TOKENS.primary,
+    backgroundColor: theme.primary,
     borderRadius: 6,
     minHeight: METRICS.minTouchTarget,
     justifyContent: 'center',
@@ -521,7 +524,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   modalCloseText: {
-    color: TOKENS.primaryForeground,
+    color: theme.primaryForeground,
     fontWeight: '800',
     fontSize: 13,
     fontFamily: FONTS.mono,

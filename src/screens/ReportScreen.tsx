@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -17,7 +17,8 @@ import { Report, ReportCategory, ReportSeverity, Language } from '../types';
 import { translations } from '../i18n/translations';
 import { getReports, insertReport } from '../db';
 import { NIGERIA_LOCATIONS } from '../data/lgaData';
-import { TOKENS, RISK_CONFIG, STATUS_CONFIG, FONTS, METRICS, HIT_SLOP_64 } from '../theme/tokens';
+import { ThemeTokens, FONTS, METRICS, HIT_SLOP_64 } from '../theme/tokens';
+import { useTheme } from '../theme/ThemeContext';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 
 interface Props {
@@ -112,6 +113,8 @@ export const ReportScreen: React.FC<Props> = ({
   onLock,
   onOpenSpec,
 }) => {
+  const { theme, isDark, riskConfig, statusConfig } = useTheme();
+  const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
   const t = translations[language];
 
   const [activeTab, setActiveTab] = useState<number>(0);
@@ -196,8 +199,8 @@ export const ReportScreen: React.FC<Props> = ({
 
   const renderEntryCard: ListRenderItem<LedgerEntry> = useCallback(
     ({ item: entry }) => {
-      const risk = RISK_CONFIG[entry.risk] || RISK_CONFIG.HIGH;
-      const status = STATUS_CONFIG[entry.status] || STATUS_CONFIG.pending;
+      const risk = riskConfig[entry.risk] || riskConfig.HIGH;
+      const status = statusConfig[entry.status] || statusConfig.pending;
       const isOpen = expandedId === entry.id;
 
       return (
@@ -373,7 +376,7 @@ export const ReportScreen: React.FC<Props> = ({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={TOKENS.background} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
 
       {/* ── Status Bar — PANIC TRIGGER ZONE (3 rapid taps within 800ms) ── */}
       <TouchableOpacity
@@ -548,7 +551,7 @@ export const ReportScreen: React.FC<Props> = ({
               <TextInput
                 style={styles.textInput}
                 placeholder="Brief summary of incident..."
-                placeholderTextColor={TOKENS.mutedForeground}
+                placeholderTextColor={theme.mutedForeground}
                 value={formTitle}
                 onChangeText={setFormTitle}
               />
@@ -557,7 +560,7 @@ export const ReportScreen: React.FC<Props> = ({
               <Text style={styles.inputLabel}>RISK LEVEL</Text>
               <View style={styles.riskRow}>
                 {(['CRIT', 'HIGH', 'MED', 'LOW'] as const).map((r) => {
-                  const cfg = RISK_CONFIG[r];
+                  const cfg = riskConfig[r];
                   const isSelected = formRisk === r;
                   return (
                     <TouchableOpacity
@@ -565,7 +568,7 @@ export const ReportScreen: React.FC<Props> = ({
                       onPress={() => setFormRisk(r)}
                       style={[
                         styles.riskOption,
-                        { borderColor: isSelected ? cfg.text : TOKENS.border },
+                        { borderColor: isSelected ? cfg.text : theme.border },
                         isSelected && { backgroundColor: cfg.bg },
                       ]}
                     >
@@ -585,7 +588,7 @@ export const ReportScreen: React.FC<Props> = ({
               <TextInput
                 style={[styles.textInput, styles.textArea]}
                 placeholder="Detailed observation (truck plate, affected individuals, witnesses)..."
-                placeholderTextColor={TOKENS.mutedForeground}
+                placeholderTextColor={theme.mutedForeground}
                 value={formNote}
                 onChangeText={setFormNote}
                 multiline={true}
@@ -708,10 +711,10 @@ export const ReportScreen: React.FC<Props> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ThemeTokens, isDark: boolean) => StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: TOKENS.background,
+    backgroundColor: theme.background,
   },
   panicTriggerBar: {
     flexDirection: 'row',
@@ -721,7 +724,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: TOKENS.border,
+    borderBottomColor: theme.border,
   },
   clockRow: {
     flexDirection: 'row',
@@ -731,13 +734,13 @@ const styles = StyleSheet.create({
   clockText: {
     fontFamily: FONTS.mono,
     fontSize: 10,
-    color: TOKENS.primary,
+    color: theme.primary,
     letterSpacing: 1.2,
   },
   secureBadge: {
-    backgroundColor: TOKENS.secondary,
+    backgroundColor: theme.secondary,
     borderWidth: 1,
-    borderColor: TOKENS.border,
+    borderColor: theme.border,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 2,
@@ -745,7 +748,7 @@ const styles = StyleSheet.create({
   secureBadgeText: {
     fontFamily: FONTS.mono,
     fontSize: 8,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
     letterSpacing: 1.5,
     fontWeight: '700',
   },
@@ -757,13 +760,13 @@ const styles = StyleSheet.create({
   syncStatusText: {
     fontFamily: FONTS.mono,
     fontSize: 9,
-    color: TOKENS.statusPending,
+    color: theme.statusPending,
     letterSpacing: 0.8,
   },
   specMiniBtn: {
-    backgroundColor: TOKENS.secondary,
+    backgroundColor: theme.secondary,
     borderWidth: 1,
-    borderColor: TOKENS.primary,
+    borderColor: theme.primary,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 2,
@@ -771,7 +774,7 @@ const styles = StyleSheet.create({
   specMiniBtnText: {
     fontFamily: FONTS.mono,
     fontSize: 8,
-    color: TOKENS.primary,
+    color: theme.primary,
     fontWeight: '700',
   },
   lockMiniBtn: {
@@ -795,13 +798,13 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.condensed,
     fontSize: 22,
     fontWeight: '700',
-    color: TOKENS.primary,
+    color: theme.primary,
     letterSpacing: 1,
   },
   subTitle: {
     fontFamily: FONTS.mono,
     fontSize: 9,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
     letterSpacing: 1,
     marginTop: 2,
   },
@@ -809,7 +812,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: TOKENS.primary,
+    backgroundColor: theme.primary,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 2,
@@ -817,19 +820,19 @@ const styles = StyleSheet.create({
   newRecordBtnIcon: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: TOKENS.primaryForeground,
+    color: theme.primaryForeground,
     lineHeight: 16,
   },
   newRecordBtnText: {
     fontFamily: FONTS.condensed,
     fontSize: 12,
     fontWeight: '700',
-    color: TOKENS.primaryForeground,
+    color: theme.primaryForeground,
     letterSpacing: 1,
   },
   tabsContainer: {
     borderBottomWidth: 1,
-    borderBottomColor: TOKENS.border,
+    borderBottomColor: theme.border,
   },
   tabsScrollContent: {
     paddingHorizontal: 16,
@@ -842,17 +845,17 @@ const styles = StyleSheet.create({
     marginBottom: -1,
   },
   tabButtonActive: {
-    borderBottomColor: TOKENS.primary,
+    borderBottomColor: theme.primary,
   },
   tabButtonText: {
     fontFamily: FONTS.mono,
     fontSize: 9,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
   tabButtonTextActive: {
-    color: TOKENS.primary,
+    color: theme.primary,
     fontWeight: '700',
   },
   listContainer: {
@@ -865,15 +868,15 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   entryCard: {
-    backgroundColor: TOKENS.card,
+    backgroundColor: theme.card,
     borderWidth: 1,
-    borderColor: TOKENS.border,
+    borderColor: theme.border,
     borderRadius: 2,
     overflow: 'hidden',
   },
   entryCardExpanded: {
-    backgroundColor: TOKENS.secondary,
-    borderColor: TOKENS.primary,
+    backgroundColor: theme.secondary,
+    borderColor: theme.primary,
   },
   entryMainRow: {
     flexDirection: 'row',
@@ -906,7 +909,7 @@ const styles = StyleSheet.create({
   entryIdText: {
     fontFamily: FONTS.mono,
     fontSize: 9,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
     letterSpacing: 1,
   },
   riskBadge: {
@@ -925,7 +928,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.condensed,
     fontSize: 14,
     fontWeight: '600',
-    color: TOKENS.foreground,
+    color: theme.foreground,
     lineHeight: 18,
   },
   entryStatusRow: {
@@ -937,7 +940,7 @@ const styles = StyleSheet.create({
   entryDateText: {
     fontFamily: FONTS.mono,
     fontSize: 9,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
   },
   statusPill: {
     paddingHorizontal: 6,
@@ -954,12 +957,12 @@ const styles = StyleSheet.create({
   chevronArrow: {
     fontFamily: FONTS.mono,
     fontSize: 12,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
     marginTop: 2,
   },
   expandedSection: {
     borderTopWidth: 1,
-    borderTopColor: TOKENS.border,
+    borderTopColor: theme.border,
     padding: 12,
   },
   expandedGrid: {
@@ -973,7 +976,7 @@ const styles = StyleSheet.create({
   gridColLabel: {
     fontFamily: FONTS.mono,
     fontSize: 8,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
     letterSpacing: 1,
     textTransform: 'uppercase',
     marginBottom: 2,
@@ -981,15 +984,15 @@ const styles = StyleSheet.create({
   gridColValue: {
     fontFamily: FONTS.mono,
     fontSize: 10,
-    color: TOKENS.primary,
+    color: theme.primary,
   },
   gridColValueWhite: {
     fontFamily: FONTS.mono,
     fontSize: 10,
-    color: TOKENS.foreground,
+    color: theme.foreground,
   },
   fieldNoteBox: {
-    backgroundColor: TOKENS.muted,
+    backgroundColor: theme.muted,
     padding: 8,
     borderRadius: 2,
     marginBottom: 10,
@@ -997,14 +1000,14 @@ const styles = StyleSheet.create({
   fieldNoteLabel: {
     fontFamily: FONTS.mono,
     fontSize: 8,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
     letterSpacing: 1,
     marginBottom: 2,
   },
   fieldNoteText: {
     fontFamily: FONTS.condensed,
     fontSize: 13,
-    color: TOKENS.foreground,
+    color: theme.foreground,
     lineHeight: 18,
   },
   expandedActionsRow: {
@@ -1014,7 +1017,7 @@ const styles = StyleSheet.create({
   actionBtnPrimary: {
     flex: 1,
     borderWidth: 1,
-    borderColor: TOKENS.primary,
+    borderColor: theme.primary,
     paddingVertical: 8,
     borderRadius: 2,
     alignItems: 'center',
@@ -1022,14 +1025,14 @@ const styles = StyleSheet.create({
   actionBtnPrimaryText: {
     fontFamily: FONTS.mono,
     fontSize: 9,
-    color: TOKENS.primary,
+    color: theme.primary,
     fontWeight: '700',
     letterSpacing: 1,
   },
   actionBtnDanger: {
     flex: 1,
     borderWidth: 1,
-    borderColor: TOKENS.statusDanger,
+    borderColor: theme.statusDanger,
     paddingVertical: 8,
     borderRadius: 2,
     alignItems: 'center',
@@ -1037,7 +1040,7 @@ const styles = StyleSheet.create({
   actionBtnDangerText: {
     fontFamily: FONTS.mono,
     fontSize: 9,
-    color: TOKENS.statusDanger,
+    color: theme.statusDanger,
     fontWeight: '700',
     letterSpacing: 1,
   },
@@ -1047,9 +1050,9 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: TOKENS.card,
+    backgroundColor: theme.card,
     borderTopWidth: 2,
-    borderTopColor: TOKENS.primary,
+    borderTopColor: theme.primary,
     borderTopLeftRadius: 4,
     borderTopRightRadius: 4,
     maxHeight: '85%',
@@ -1061,13 +1064,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: TOKENS.border,
+    borderBottomColor: theme.border,
   },
   modalTitle: {
     fontFamily: FONTS.condensed,
     fontSize: 16,
     fontWeight: '700',
-    color: TOKENS.primary,
+    color: theme.primary,
     letterSpacing: 1,
   },
   closeBtn: {
@@ -1076,7 +1079,7 @@ const styles = StyleSheet.create({
   closeBtnText: {
     fontFamily: FONTS.mono,
     fontSize: 16,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
   },
   modalScroll: {
     padding: 16,
@@ -1086,12 +1089,12 @@ const styles = StyleSheet.create({
   errorText: {
     fontFamily: FONTS.mono,
     fontSize: 10,
-    color: TOKENS.statusDanger,
+    color: theme.statusDanger,
   },
   inputLabel: {
     fontFamily: FONTS.mono,
     fontSize: 8,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
@@ -1100,32 +1103,32 @@ const styles = StyleSheet.create({
   },
   catChip: {
     borderWidth: 1,
-    borderColor: TOKENS.border,
-    backgroundColor: TOKENS.secondary,
+    borderColor: theme.border,
+    backgroundColor: theme.secondary,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 2,
     marginRight: 6,
   },
   catChipActive: {
-    borderColor: TOKENS.primary,
-    backgroundColor: TOKENS.primary,
+    borderColor: theme.primary,
+    backgroundColor: theme.primary,
   },
   catChipText: {
     fontFamily: FONTS.mono,
     fontSize: 9,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
   },
   catChipTextActive: {
-    color: TOKENS.primaryForeground,
+    color: theme.primaryForeground,
     fontWeight: '700',
   },
   locationSelectorBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: TOKENS.border,
-    backgroundColor: TOKENS.secondary,
+    borderColor: theme.border,
+    backgroundColor: theme.secondary,
     paddingHorizontal: 10,
     paddingVertical: 10,
     borderRadius: 2,
@@ -1138,24 +1141,24 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: FONTS.mono,
     fontSize: 9,
-    color: TOKENS.foreground,
+    color: theme.foreground,
   },
   changeText: {
     fontFamily: FONTS.mono,
     fontSize: 8,
-    color: TOKENS.primary,
+    color: theme.primary,
     fontWeight: '700',
   },
   textInput: {
     borderWidth: 1,
-    borderColor: TOKENS.border,
-    backgroundColor: TOKENS.secondary,
+    borderColor: theme.border,
+    backgroundColor: theme.secondary,
     paddingHorizontal: 10,
     paddingVertical: 10,
     borderRadius: 2,
     fontFamily: FONTS.sans,
     fontSize: 13,
-    color: TOKENS.foreground,
+    color: theme.foreground,
   },
   textArea: {
     minHeight: 80,
@@ -1171,7 +1174,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 2,
     alignItems: 'center',
-    backgroundColor: TOKENS.secondary,
+    backgroundColor: theme.secondary,
   },
   riskOptionShape: {
     fontSize: 14,
@@ -1183,7 +1186,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   submitBtn: {
-    backgroundColor: TOKENS.primary,
+    backgroundColor: theme.primary,
     paddingVertical: 14,
     borderRadius: 2,
     alignItems: 'center',
@@ -1193,7 +1196,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.condensed,
     fontSize: 14,
     fontWeight: '700',
-    color: TOKENS.primaryForeground,
+    color: theme.primaryForeground,
     letterSpacing: 1.5,
   },
   locationModalOverlay: {
@@ -1203,9 +1206,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   locationModalCard: {
-    backgroundColor: TOKENS.card,
+    backgroundColor: theme.card,
     borderWidth: 1,
-    borderColor: TOKENS.primary,
+    borderColor: theme.primary,
     borderRadius: 4,
     padding: 16,
     maxHeight: '80%',
@@ -1214,13 +1217,13 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.condensed,
     fontSize: 16,
     fontWeight: '700',
-    color: TOKENS.primary,
+    color: theme.primary,
     marginBottom: 12,
   },
   locationSubLabel: {
     fontFamily: FONTS.mono,
     fontSize: 8,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
     letterSpacing: 1,
     marginBottom: 6,
     marginTop: 6,
@@ -1233,8 +1236,8 @@ const styles = StyleSheet.create({
   },
   locChip: {
     borderWidth: 1,
-    borderColor: TOKENS.border,
-    backgroundColor: TOKENS.secondary,
+    borderColor: theme.border,
+    backgroundColor: theme.secondary,
     paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: 2,
@@ -1242,23 +1245,23 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   locChipActive: {
-    borderColor: TOKENS.primary,
-    backgroundColor: TOKENS.primary,
+    borderColor: theme.primary,
+    backgroundColor: theme.primary,
   },
   locChipText: {
     fontFamily: FONTS.mono,
     fontSize: 9,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
   },
   locChipTextActive: {
-    color: TOKENS.primaryForeground,
+    color: theme.primaryForeground,
     fontWeight: '700',
   },
   lgaScroll: {
     marginBottom: 8,
   },
   locationDoneBtn: {
-    backgroundColor: TOKENS.primary,
+    backgroundColor: theme.primary,
     paddingVertical: 10,
     borderRadius: 2,
     alignItems: 'center',
@@ -1268,7 +1271,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.condensed,
     fontSize: 12,
     fontWeight: '700',
-    color: TOKENS.primaryForeground,
+    color: theme.primaryForeground,
     letterSpacing: 1,
   },
 });

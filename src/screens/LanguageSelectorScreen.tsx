@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -9,7 +9,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { Language } from '../types';
-import { TOKENS, FONTS, METRICS } from '../theme/tokens';
+import { ThemeTokens, FONTS, METRICS } from '../theme/tokens';
+import { useTheme } from '../theme/ThemeContext';
 
 interface Props {
   currentLanguage: Language;
@@ -67,21 +68,26 @@ export const LanguageSelectorScreen: React.FC<Props> = ({
   onSelect,
   onOpenSpec,
 }) => {
+  const { theme, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={TOKENS.background} />
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={theme.background}
+      />
 
       {/* Top Header with discrete SPEC button */}
       <View style={styles.topBar}>
         <Text style={styles.clockText}>09:41</Text>
         <View style={styles.topRightControls}>
-          <Text style={styles.statusBarIcons}>▲▲▲ WiFi 🔋85%</Text>
+          <Text style={styles.statusBarIcons}>▲ 100%</Text>
           {onOpenSpec && (
             <TouchableOpacity
               onPress={onOpenSpec}
               style={styles.specButton}
               activeOpacity={0.7}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Text style={styles.specButtonText}>SPEC</Text>
             </TouchableOpacity>
@@ -89,14 +95,19 @@ export const LanguageSelectorScreen: React.FC<Props> = ({
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
-        {/* App Logo Mark — Framed Square ÈTÒ */}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Visual Identity / Logo Block */}
         <View style={styles.logoSection}>
           <View style={styles.logoBadge}>
             <Text style={styles.logoText}>ÈTÒ</Text>
           </View>
-          <Text style={styles.appName}>CIVIC MONITOR</Text>
-          <Text style={styles.appSubtext}>FIELD OPERATIONS V2.4</Text>
+          <Text style={styles.appName}>ETO MOBILE</Text>
+          <Text style={styles.appSubtext}>
+            TACTICAL CIVIC LEDGER · VER 1.0
+          </Text>
         </View>
 
         {/* Structural hairline */}
@@ -147,15 +158,15 @@ export const LanguageSelectorScreen: React.FC<Props> = ({
           })}
         </View>
 
-        {/* Bottom Local Storage & Accessibility Notice */}
+        {/* Footnote / Offline notice */}
         <View style={styles.noticeBox}>
           <Text style={styles.noticeIcon}>ℹ</Text>
           <View style={styles.noticeTextContainer}>
             <Text style={styles.noticeText}>
-              All data stored locally. Network connection not required for core functions.
+              All records stored locally. No cloud sync without explicit manual initiation.
             </Text>
             <Text style={styles.noticeSubtext}>
-              Duk bayanan an ajiye a cikin na'ura. Babu buƙatar intanet.
+              Duk bayanan ana ajiye su ne a kan wayarka. Ba a tura komai ta intanet sai da izininka.
             </Text>
           </View>
         </View>
@@ -164,203 +175,204 @@ export const LanguageSelectorScreen: React.FC<Props> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: TOKENS.background,
-  },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 4,
-  },
-  clockText: {
-    fontFamily: FONTS.mono,
-    fontSize: 10,
-    color: TOKENS.mutedForeground,
-    letterSpacing: 1.2,
-  },
-  topRightControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  statusBarIcons: {
-    fontFamily: FONTS.mono,
-    fontSize: 10,
-    color: TOKENS.mutedForeground,
-  },
-  specButton: {
-    backgroundColor: TOKENS.secondary,
-    borderWidth: 1,
-    borderColor: TOKENS.border,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 2,
-  },
-  specButtonText: {
-    fontFamily: FONTS.mono,
-    fontSize: 9,
-    color: TOKENS.primary,
-    fontWeight: '700',
-    letterSpacing: 1.5,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 24,
-  },
-  logoSection: {
-    alignItems: 'center',
-    paddingTop: 24,
-    paddingBottom: 20,
-  },
-  logoBadge: {
-    width: 64,
-    height: 64,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: TOKENS.primary,
-    backgroundColor: TOKENS.secondary,
-    marginBottom: 12,
-  },
-  logoText: {
-    fontFamily: FONTS.condensed,
-    fontSize: 26,
-    fontWeight: '700',
-    color: TOKENS.primary,
-    letterSpacing: 2,
-  },
-  appName: {
-    fontFamily: FONTS.condensed,
-    fontSize: 14,
-    fontWeight: '600',
-    color: TOKENS.foreground,
-    letterSpacing: 3,
-    textTransform: 'uppercase',
-  },
-  appSubtext: {
-    fontFamily: FONTS.mono,
-    fontSize: 9,
-    color: TOKENS.mutedForeground,
-    letterSpacing: 1.5,
-    marginTop: 4,
-    textTransform: 'uppercase',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: TOKENS.border,
-    marginBottom: 20,
-  },
-  headerSection: {
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontFamily: FONTS.condensed,
-    fontSize: 16,
-    fontWeight: '700',
-    color: TOKENS.foreground,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-  },
-  sectionSubtitle: {
-    fontFamily: FONTS.condensed,
-    fontSize: 12,
-    color: TOKENS.mutedForeground,
-    marginTop: 4,
-  },
-  cardsContainer: {
-    gap: 12,
-    marginBottom: 24,
-  },
-  langCard: {
-    minHeight: METRICS.cardMinHeight,
-    borderRadius: METRICS.borderRadius,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  langCardDefault: {
-    backgroundColor: TOKENS.card,
-    borderWidth: 1,
-    borderColor: TOKENS.border,
-  },
-  langCardSelected: {
-    backgroundColor: TOKENS.secondary,
-    borderWidth: 2,
-    borderColor: TOKENS.primary,
-  },
-  flagText: {
-    fontSize: 28,
-    marginRight: 16,
-  },
-  langTextContainer: {
-    flex: 1,
-  },
-  langName: {
-    fontFamily: FONTS.condensed,
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  langNameDefault: {
-    color: TOKENS.foreground,
-  },
-  langNameSelected: {
-    color: TOKENS.primary,
-  },
-  langSubtext: {
-    fontFamily: FONTS.mono,
-    fontSize: 10,
-    color: TOKENS.mutedForeground,
-    letterSpacing: 1,
-    marginTop: 2,
-    textTransform: 'uppercase',
-  },
-  chevronText: {
-    fontSize: 24,
-    fontWeight: '300',
-    marginLeft: 8,
-  },
-  chevronDefault: {
-    color: TOKENS.mutedForeground,
-  },
-  chevronSelected: {
-    color: TOKENS.primary,
-  },
-  noticeBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: TOKENS.muted,
-    borderWidth: 1,
-    borderColor: TOKENS.border,
-    padding: 12,
-    borderRadius: METRICS.borderRadius,
-    gap: 10,
-  },
-  noticeIcon: {
-    color: TOKENS.primary,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  noticeTextContainer: {
-    flex: 1,
-  },
-  noticeText: {
-    fontFamily: FONTS.mono,
-    fontSize: 9,
-    color: TOKENS.mutedForeground,
-    lineHeight: 14,
-  },
-  noticeSubtext: {
-    fontFamily: FONTS.mono,
-    fontSize: 9,
-    color: TOKENS.mutedForeground,
-    lineHeight: 14,
-    marginTop: 4,
-  },
-});
+const createStyles = (theme: ThemeTokens, isDark: boolean) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    topBar: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      paddingBottom: 4,
+    },
+    clockText: {
+      fontFamily: FONTS.mono,
+      fontSize: 10,
+      color: theme.mutedForeground,
+      letterSpacing: 1.2,
+    },
+    topRightControls: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    statusBarIcons: {
+      fontFamily: FONTS.mono,
+      fontSize: 10,
+      color: theme.mutedForeground,
+    },
+    specButton: {
+      backgroundColor: theme.secondary,
+      borderWidth: 1,
+      borderColor: theme.border,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 2,
+    },
+    specButtonText: {
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      color: theme.primary,
+      fontWeight: '700',
+      letterSpacing: 1.5,
+    },
+    scrollContent: {
+      paddingHorizontal: 20,
+      paddingBottom: 24,
+    },
+    logoSection: {
+      alignItems: 'center',
+      paddingTop: 24,
+      paddingBottom: 20,
+    },
+    logoBadge: {
+      width: 64,
+      height: 64,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: theme.primary,
+      backgroundColor: theme.secondary,
+      marginBottom: 12,
+    },
+    logoText: {
+      fontFamily: FONTS.condensed,
+      fontSize: 26,
+      fontWeight: '700',
+      color: theme.primary,
+      letterSpacing: 2,
+    },
+    appName: {
+      fontFamily: FONTS.condensed,
+      fontSize: 14,
+      fontWeight: '600',
+      color: theme.foreground,
+      letterSpacing: 3,
+      textTransform: 'uppercase',
+    },
+    appSubtext: {
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      color: theme.mutedForeground,
+      letterSpacing: 1.5,
+      marginTop: 4,
+      textTransform: 'uppercase',
+    },
+    divider: {
+      height: 1,
+      backgroundColor: theme.border,
+      marginBottom: 20,
+    },
+    headerSection: {
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    sectionTitle: {
+      fontFamily: FONTS.condensed,
+      fontSize: 16,
+      fontWeight: '700',
+      color: theme.foreground,
+      letterSpacing: 1.5,
+      textTransform: 'uppercase',
+    },
+    sectionSubtitle: {
+      fontFamily: FONTS.condensed,
+      fontSize: 12,
+      color: theme.mutedForeground,
+      marginTop: 4,
+    },
+    cardsContainer: {
+      gap: 12,
+      marginBottom: 24,
+    },
+    langCard: {
+      minHeight: METRICS.cardMinHeight,
+      borderRadius: METRICS.borderRadius,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    langCardDefault: {
+      backgroundColor: theme.card,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    langCardSelected: {
+      backgroundColor: theme.secondary,
+      borderWidth: 2,
+      borderColor: theme.primary,
+    },
+    flagText: {
+      fontSize: 28,
+      marginRight: 16,
+    },
+    langTextContainer: {
+      flex: 1,
+    },
+    langName: {
+      fontFamily: FONTS.condensed,
+      fontSize: 18,
+      fontWeight: '700',
+    },
+    langNameDefault: {
+      color: theme.foreground,
+    },
+    langNameSelected: {
+      color: theme.primary,
+    },
+    langSubtext: {
+      fontFamily: FONTS.mono,
+      fontSize: 10,
+      color: theme.mutedForeground,
+      letterSpacing: 1,
+      marginTop: 2,
+      textTransform: 'uppercase',
+    },
+    chevronText: {
+      fontSize: 24,
+      fontWeight: '300',
+      marginLeft: 8,
+    },
+    chevronDefault: {
+      color: theme.mutedForeground,
+    },
+    chevronSelected: {
+      color: theme.primary,
+    },
+    noticeBox: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      backgroundColor: theme.muted,
+      borderWidth: 1,
+      borderColor: theme.border,
+      padding: 12,
+      borderRadius: METRICS.borderRadius,
+      gap: 10,
+    },
+    noticeIcon: {
+      color: theme.primary,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    noticeTextContainer: {
+      flex: 1,
+    },
+    noticeText: {
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      color: theme.mutedForeground,
+      lineHeight: 14,
+    },
+    noticeSubtext: {
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      color: theme.mutedForeground,
+      lineHeight: 14,
+      marginTop: 4,
+    },
+  });

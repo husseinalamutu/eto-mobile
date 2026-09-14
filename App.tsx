@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -14,7 +14,8 @@ import * as ScreenCapture from 'expo-screen-capture';
 import { AppScreen, MainTab, Language } from './src/types';
 import { translations } from './src/i18n/translations';
 import { initDatabase, getPendingCount } from './src/db';
-import { TOKENS, FONTS, METRICS, HIT_SLOP_64 } from './src/theme/tokens';
+import { FONTS, METRICS, HIT_SLOP_64, ThemeTokens } from './src/theme/tokens';
+import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 import { LanguageSelectorScreen } from './src/screens/LanguageSelectorScreen';
 import { ReportScreen } from './src/screens/ReportScreen';
 import { OpportunityScreen } from './src/screens/OpportunityScreen';
@@ -24,6 +25,17 @@ import { DesignSpecScreen } from './src/screens/DesignSpecScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 
 export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
+}
+
+function AppContent() {
+  const { theme, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
+
   const [screen, setScreen] = useState<AppScreen>('language');
   const [previousScreen, setPreviousScreen] = useState<AppScreen>('secure');
   const [activeTab, setActiveTab] = useState<MainTab>('ledger');
@@ -135,8 +147,8 @@ export default function App() {
   if (!isDbReady) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <StatusBar barStyle="light-content" backgroundColor={TOKENS.background} />
-        <ActivityIndicator size="large" color={TOKENS.primary} />
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={theme.background} />
+        <ActivityIndicator size="large" color={theme.primary} />
         <Text style={styles.loadingText}>INITIALIZING ENCRYPTED LEDGER...</Text>
       </SafeAreaView>
     );
@@ -197,7 +209,7 @@ export default function App() {
   // 5. SECURE CIVIC APPLICATION (Ledger, Opportunities, Sync, Navigation)
   return (
     <SafeAreaView style={styles.mainContainer}>
-      <StatusBar barStyle="light-content" backgroundColor={TOKENS.background} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={theme.background} />
 
       {/* Screen Body */}
       <View style={styles.body}>
@@ -422,203 +434,204 @@ export default function App() {
   );
 }
 
-const styles = StyleSheet.create({
-  flexOne: {
-    flex: 1,
-    backgroundColor: TOKENS.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: TOKENS.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    color: TOKENS.mutedForeground,
-    fontSize: 11,
-    fontWeight: '700',
-    fontFamily: FONTS.mono,
-    marginTop: 14,
-    letterSpacing: 1,
-  },
-  mainContainer: {
-    flex: 1,
-    backgroundColor: TOKENS.background,
-  },
-  body: {
-    flex: 1,
-  },
-  tabContentWrapper: {
-    flex: 1,
-  },
-  specFloatWrapper: {
-    position: 'absolute',
-    top: 10,
-    right: 14,
-    zIndex: 99,
-  },
-  specFloatBtn: {
-    backgroundColor: TOKENS.secondary,
-    borderWidth: 1,
-    borderColor: TOKENS.border,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 3,
-    minHeight: 28,
-    minWidth: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  specFloatText: {
-    fontSize: 9,
-    fontFamily: FONTS.mono,
-    fontWeight: '700',
-    color: TOKENS.mutedForeground,
-    letterSpacing: 1,
-  },
-  panicTriggerBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    backgroundColor: TOKENS.card,
-    borderBottomWidth: 1,
-    borderBottomColor: TOKENS.border,
-    minHeight: 40,
-  },
-  clockRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  clockText: {
-    fontFamily: FONTS.mono,
-    fontSize: 12,
-    fontWeight: '700',
-    color: TOKENS.foreground,
-  },
-  secureBadge: {
-    backgroundColor: '#0B2313',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 2,
-    borderWidth: 1,
-    borderColor: TOKENS.riskLow,
-  },
-  secureBadgeText: {
-    fontFamily: FONTS.mono,
-    fontSize: 9,
-    fontWeight: '800',
-    color: TOKENS.riskLow,
-    letterSpacing: 0.5,
-  },
-  statusActionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  langPill: {
-    backgroundColor: TOKENS.secondary,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 3,
-    borderWidth: 1,
-    borderColor: TOKENS.border,
-  },
-  langPillText: {
-    fontSize: 10,
-    fontFamily: FONTS.mono,
-    fontWeight: '800',
-    color: TOKENS.primary,
-  },
-  specMiniBtn: {
-    backgroundColor: TOKENS.secondary,
-    borderWidth: 1,
-    borderColor: TOKENS.border,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 2,
-  },
-  specMiniBtnText: {
-    fontFamily: FONTS.mono,
-    fontSize: 9,
-    fontWeight: '700',
-    color: TOKENS.mutedForeground,
-  },
-  lockMiniBtn: {
-    backgroundColor: TOKENS.secondary,
-    borderWidth: 1,
-    borderColor: TOKENS.border,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 2,
-  },
-  lockMiniBtnText: {
-    fontSize: 11,
-  },
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: TOKENS.card,
-    borderTopWidth: 1,
-    borderTopColor: TOKENS.border,
-    minHeight: 52,
-    paddingBottom: 4,
-    paddingTop: 4,
-  },
-  tabButton: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: METRICS.minTouchTarget,
-    paddingHorizontal: 2,
-  },
-  tabButtonActive: {
-    borderTopWidth: 2,
-    borderTopColor: TOKENS.primary,
-    marginTop: -4,
-    paddingTop: 2,
-  },
-  tabIconWrapper: {
-    position: 'relative',
-    alignItems: 'center',
-  },
-  tabIcon: {
-    fontSize: 16,
-    fontFamily: FONTS.mono,
-    color: TOKENS.mutedForeground,
-    fontWeight: '700',
-  },
-  tabIconActive: {
-    color: TOKENS.primary,
-  },
-  tabBadge: {
-    position: 'absolute',
-    top: -4,
-    right: -10,
-    backgroundColor: TOKENS.riskCritical,
-    borderRadius: 6,
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    minWidth: 14,
-    alignItems: 'center',
-  },
-  tabBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 8,
-    fontWeight: '900',
-    fontFamily: FONTS.mono,
-  },
-  tabLabel: {
-    fontSize: 9,
-    color: TOKENS.mutedForeground,
-    fontWeight: '700',
-    fontFamily: FONTS.mono,
-    letterSpacing: 0.5,
-    marginTop: 2,
-  },
-  tabLabelActive: {
-    color: TOKENS.primary,
-    fontWeight: '800',
-  },
-});
+const createStyles = (theme: ThemeTokens, isDark: boolean) =>
+  StyleSheet.create({
+    flexOne: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    loadingContainer: {
+      flex: 1,
+      backgroundColor: theme.background,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadingText: {
+      color: theme.mutedForeground,
+      fontSize: 11,
+      fontWeight: '700',
+      fontFamily: FONTS.mono,
+      marginTop: 14,
+      letterSpacing: 1,
+    },
+    mainContainer: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    body: {
+      flex: 1,
+    },
+    tabContentWrapper: {
+      flex: 1,
+    },
+    specFloatWrapper: {
+      position: 'absolute',
+      top: 10,
+      right: 14,
+      zIndex: 99,
+    },
+    specFloatBtn: {
+      backgroundColor: theme.secondary,
+      borderWidth: 1,
+      borderColor: theme.border,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 3,
+      minHeight: 28,
+      minWidth: 48,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    specFloatText: {
+      fontSize: 9,
+      fontFamily: FONTS.mono,
+      fontWeight: '700',
+      color: theme.mutedForeground,
+      letterSpacing: 1,
+    },
+    panicTriggerBar: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 14,
+      paddingVertical: 6,
+      backgroundColor: theme.card,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+      minHeight: 40,
+    },
+    clockRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    clockText: {
+      fontFamily: FONTS.mono,
+      fontSize: 12,
+      fontWeight: '700',
+      color: theme.foreground,
+    },
+    secureBadge: {
+      backgroundColor: isDark ? '#0B2313' : '#E8F5E9',
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 2,
+      borderWidth: 1,
+      borderColor: theme.riskLow,
+    },
+    secureBadgeText: {
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      fontWeight: '800',
+      color: theme.riskLow,
+      letterSpacing: 0.5,
+    },
+    statusActionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    langPill: {
+      backgroundColor: theme.secondary,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 3,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    langPillText: {
+      fontSize: 10,
+      fontFamily: FONTS.mono,
+      fontWeight: '800',
+      color: theme.primary,
+    },
+    specMiniBtn: {
+      backgroundColor: theme.secondary,
+      borderWidth: 1,
+      borderColor: theme.border,
+      paddingHorizontal: 7,
+      paddingVertical: 3,
+      borderRadius: 2,
+    },
+    specMiniBtnText: {
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      fontWeight: '700',
+      color: theme.mutedForeground,
+    },
+    lockMiniBtn: {
+      backgroundColor: theme.secondary,
+      borderWidth: 1,
+      borderColor: theme.border,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 2,
+    },
+    lockMiniBtnText: {
+      fontSize: 11,
+    },
+    tabBar: {
+      flexDirection: 'row',
+      backgroundColor: theme.card,
+      borderTopWidth: 1,
+      borderTopColor: theme.border,
+      minHeight: 52,
+      paddingBottom: 4,
+      paddingTop: 4,
+    },
+    tabButton: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: METRICS.minTouchTarget,
+      paddingHorizontal: 2,
+    },
+    tabButtonActive: {
+      borderTopWidth: 2,
+      borderTopColor: theme.primary,
+      marginTop: -4,
+      paddingTop: 2,
+    },
+    tabIconWrapper: {
+      position: 'relative',
+      alignItems: 'center',
+    },
+    tabIcon: {
+      fontSize: 16,
+      fontFamily: FONTS.mono,
+      color: theme.mutedForeground,
+      fontWeight: '700',
+    },
+    tabIconActive: {
+      color: theme.primary,
+    },
+    tabBadge: {
+      position: 'absolute',
+      top: -4,
+      right: -10,
+      backgroundColor: theme.riskCritical,
+      borderRadius: 6,
+      paddingHorizontal: 4,
+      paddingVertical: 1,
+      minWidth: 14,
+      alignItems: 'center',
+    },
+    tabBadgeText: {
+      color: '#FFFFFF',
+      fontSize: 8,
+      fontWeight: '900',
+      fontFamily: FONTS.mono,
+    },
+    tabLabel: {
+      fontSize: 9,
+      color: theme.mutedForeground,
+      fontWeight: '700',
+      fontFamily: FONTS.mono,
+      letterSpacing: 0.5,
+      marginTop: 2,
+    },
+    tabLabelActive: {
+      color: theme.primary,
+      fontWeight: '800',
+    },
+  });

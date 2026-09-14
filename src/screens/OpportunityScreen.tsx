@@ -14,7 +14,8 @@ import { Opportunity, Language } from '../types';
 import { translations } from '../i18n/translations';
 import { toggleBookmark, getBookmarkedIds } from '../db';
 import opportunitiesData from '../../assets/data/opportunities.json';
-import { TOKENS, FONTS, METRICS, HIT_SLOP_64 } from '../theme/tokens';
+import { ThemeTokens, FONTS, METRICS, HIT_SLOP_64 } from '../theme/tokens';
+import { useTheme } from '../theme/ThemeContext';
 import { FlashList } from '@shopify/flash-list';
 
 interface OpportunityScreenProps {
@@ -25,6 +26,8 @@ const STATES = ['All', 'Kano', 'Kaduna', 'Borno', 'Katsina', 'Oyo', 'Enugu'];
 const CATEGORIES = ['All', 'Agriculture', 'Legal Aid', 'Peace Grant', 'Civic Oversight'];
 
 export const OpportunityScreen: React.FC<OpportunityScreenProps> = ({ language }) => {
+  const { theme, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
   const t = translations[language];
   const [selectedState, setSelectedState] = useState<string>('All');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -93,7 +96,7 @@ export const OpportunityScreen: React.FC<OpportunityScreenProps> = ({ language }
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={TOKENS.background} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.screenHeading}>{t.oppHeading.toUpperCase()}</Text>
@@ -115,7 +118,7 @@ export const OpportunityScreen: React.FC<OpportunityScreenProps> = ({ language }
         <TextInput
           style={styles.searchInput}
           placeholder={t.searchPlaceholder}
-          placeholderTextColor={TOKENS.mutedForeground}
+          placeholderTextColor={theme.mutedForeground}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
@@ -280,17 +283,17 @@ export const OpportunityScreen: React.FC<OpportunityScreenProps> = ({ language }
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: ThemeTokens, isDark: boolean) => StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: TOKENS.background,
+    backgroundColor: theme.background,
   },
   header: {
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: TOKENS.border,
+    borderBottomColor: theme.border,
   },
   headerTop: {
     flexDirection: 'row',
@@ -301,36 +304,36 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.condensed,
     fontSize: 20,
     fontWeight: '700',
-    color: TOKENS.primary,
+    color: theme.primary,
     letterSpacing: 1,
   },
   screenSubheading: {
     fontFamily: FONTS.mono,
     fontSize: 9,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
     marginTop: 2,
     letterSpacing: 0.5,
   },
   bookmarkFilterBtn: {
-    backgroundColor: TOKENS.secondary,
+    backgroundColor: theme.secondary,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 2,
     borderWidth: 1,
-    borderColor: TOKENS.border,
+    borderColor: theme.border,
   },
   bookmarkFilterBtnActive: {
-    borderColor: TOKENS.primary,
-    backgroundColor: TOKENS.muted,
+    borderColor: theme.primary,
+    backgroundColor: theme.muted,
   },
   bookmarkFilterText: {
     fontFamily: FONTS.mono,
     fontSize: 9,
     fontWeight: '700',
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
   },
   bookmarkFilterTextActive: {
-    color: TOKENS.primary,
+    color: theme.primary,
   },
   searchWrapper: {
     paddingHorizontal: 16,
@@ -338,15 +341,15 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   searchInput: {
-    backgroundColor: TOKENS.secondary,
+    backgroundColor: theme.secondary,
     borderRadius: 2,
     paddingHorizontal: 12,
     paddingVertical: 8,
     fontFamily: FONTS.sans,
     fontSize: 12,
-    color: TOKENS.foreground,
+    color: theme.foreground,
     borderWidth: 1,
-    borderColor: TOKENS.border,
+    borderColor: theme.border,
   },
   clearSearchBtn: {
     position: 'absolute',
@@ -355,7 +358,7 @@ const styles = StyleSheet.create({
     padding: 2,
   },
   clearSearchText: {
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
     fontSize: 13,
     fontWeight: 'bold',
   },
@@ -369,32 +372,32 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.mono,
     fontSize: 8,
     fontWeight: '700',
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
     marginRight: 6,
     minWidth: 40,
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
   filterChip: {
-    backgroundColor: TOKENS.card,
+    backgroundColor: theme.card,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 2,
     marginRight: 6,
     borderWidth: 1,
-    borderColor: TOKENS.border,
+    borderColor: theme.border,
   },
   filterChipActive: {
-    backgroundColor: TOKENS.primary,
-    borderColor: TOKENS.primary,
+    backgroundColor: theme.primary,
+    borderColor: theme.primary,
   },
   filterChipText: {
     fontFamily: FONTS.mono,
     fontSize: 9,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
   },
   filterChipTextActive: {
-    color: TOKENS.primaryForeground,
+    color: theme.primaryForeground,
     fontWeight: '700',
   },
   listContent: {
@@ -403,11 +406,11 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   card: {
-    backgroundColor: TOKENS.card,
+    backgroundColor: theme.card,
     borderRadius: 2,
     padding: 12,
     borderWidth: 1,
-    borderColor: TOKENS.border,
+    borderColor: theme.border,
   },
   badgeRow: {
     flexDirection: 'row',
@@ -417,35 +420,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   categoryBadge: {
-    backgroundColor: TOKENS.secondary,
+    backgroundColor: theme.secondary,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 2,
     borderWidth: 1,
-    borderColor: TOKENS.border,
+    borderColor: theme.border,
   },
   categoryBadgeText: {
     fontFamily: FONTS.mono,
     fontSize: 8,
     fontWeight: '700',
-    color: TOKENS.primary,
+    color: theme.primary,
     letterSpacing: 0.5,
   },
   locationBadge: {
-    backgroundColor: TOKENS.secondary,
+    backgroundColor: theme.secondary,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 2,
     borderWidth: 1,
-    borderColor: TOKENS.border,
+    borderColor: theme.border,
   },
   locationBadgeText: {
     fontFamily: FONTS.mono,
     fontSize: 8,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
   },
   genderBadge: {
-    backgroundColor: TOKENS.secondary,
+    backgroundColor: theme.secondary,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 2,
@@ -453,7 +456,7 @@ const styles = StyleSheet.create({
   genderBadgeText: {
     fontFamily: FONTS.mono,
     fontSize: 8,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
   },
   bookmarkIconButton: {
     marginLeft: 'auto',
@@ -461,19 +464,19 @@ const styles = StyleSheet.create({
   },
   bookmarkIconText: {
     fontSize: 16,
-    color: TOKENS.primary,
+    color: theme.primary,
   },
   cardTitle: {
     fontFamily: FONTS.condensed,
     fontSize: 15,
     fontWeight: '700',
-    color: TOKENS.foreground,
+    color: theme.foreground,
     lineHeight: 20,
   },
   cardOrg: {
     fontFamily: FONTS.mono,
     fontSize: 10,
-    color: TOKENS.primary,
+    color: theme.primary,
     marginTop: 3,
   },
   metaRow: {
@@ -483,26 +486,26 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingTop: 6,
     borderTopWidth: 1,
-    borderTopColor: TOKENS.border,
+    borderTopColor: theme.border,
   },
   verifiedTag: {
     fontFamily: FONTS.mono,
     fontSize: 9,
-    color: TOKENS.statusSynced,
+    color: theme.statusSynced,
     fontWeight: '600',
   },
   sourceTag: {
     fontFamily: FONTS.mono,
     fontSize: 9,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
   },
   stepsContainer: {
     marginTop: 10,
-    backgroundColor: TOKENS.muted,
+    backgroundColor: theme.muted,
     borderRadius: 2,
     padding: 10,
     borderWidth: 1,
-    borderColor: TOKENS.border,
+    borderColor: theme.border,
   },
   stepsHeader: {
     flexDirection: 'row',
@@ -514,14 +517,14 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.mono,
     fontSize: 8,
     fontWeight: '700',
-    color: TOKENS.primary,
+    color: theme.primary,
     letterSpacing: 1,
   },
   expandButtonText: {
     fontFamily: FONTS.mono,
     fontSize: 9,
     fontWeight: '700',
-    color: TOKENS.primary,
+    color: theme.primary,
   },
   stepItem: {
     flexDirection: 'row',
@@ -532,9 +535,9 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 2,
-    backgroundColor: TOKENS.secondary,
+    backgroundColor: theme.secondary,
     borderWidth: 1,
-    borderColor: TOKENS.primary,
+    borderColor: theme.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 6,
@@ -544,13 +547,13 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.mono,
     fontSize: 9,
     fontWeight: '700',
-    color: TOKENS.primary,
+    color: theme.primary,
   },
   stepDescription: {
     flex: 1,
     fontFamily: FONTS.sans,
     fontSize: 11,
-    color: TOKENS.foreground,
+    color: theme.foreground,
     lineHeight: 16,
   },
   moreStepsHint: {
@@ -560,29 +563,29 @@ const styles = StyleSheet.create({
   moreStepsText: {
     fontFamily: FONTS.mono,
     fontSize: 9,
-    color: TOKENS.primary,
+    color: theme.primary,
   },
   actionButtonBar: {
     marginTop: 8,
     borderTopWidth: 1,
-    borderTopColor: TOKENS.border,
+    borderTopColor: theme.border,
     paddingTop: 6,
     flexDirection: 'row',
     justifyContent: 'flex-end',
   },
   smsShareBtn: {
-    backgroundColor: TOKENS.secondary,
+    backgroundColor: theme.secondary,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 2,
     borderWidth: 1,
-    borderColor: TOKENS.border,
+    borderColor: theme.border,
   },
   smsShareText: {
     fontFamily: FONTS.mono,
     fontSize: 9,
     fontWeight: '700',
-    color: TOKENS.primary,
+    color: theme.primary,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -593,12 +596,12 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.condensed,
     fontSize: 16,
     fontWeight: '700',
-    color: TOKENS.foreground,
+    color: theme.foreground,
   },
   emptySub: {
     fontFamily: FONTS.mono,
     fontSize: 10,
-    color: TOKENS.mutedForeground,
+    color: theme.mutedForeground,
     textAlign: 'center',
     marginTop: 4,
     paddingHorizontal: 20,

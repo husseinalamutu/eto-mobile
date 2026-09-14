@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -16,7 +16,8 @@ import {
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 import { Report, Language } from '../types';
 import { translations } from '../i18n/translations';
-import { TOKENS, FONTS, METRICS } from '../theme/tokens';
+import { ThemeTokens, FONTS, METRICS } from '../theme/tokens';
+import { useTheme } from '../theme/ThemeContext';
 import {
   getPendingReports,
   getPendingCount,
@@ -33,6 +34,8 @@ interface SyncScreenProps {
 const SYNC_API_ENDPOINT = 'https://jsonplaceholder.typicode.com/posts';
 
 export const SyncScreen: React.FC<SyncScreenProps> = ({ language, onSyncComplete }) => {
+  const { theme, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
   const t = translations[language];
 
   const [pendingCount, setPendingCount] = useState<number>(0);
@@ -185,7 +188,7 @@ export const SyncScreen: React.FC<SyncScreenProps> = ({ language, onSyncComplete
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={TOKENS.background} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.screenHeading}>{t.syncHeading}</Text>
@@ -198,7 +201,7 @@ export const SyncScreen: React.FC<SyncScreenProps> = ({ language, onSyncComplete
             <View
               style={[
                 styles.statusPillDot,
-                { backgroundColor: isOnline ? TOKENS.riskLow : TOKENS.riskCritical },
+                { backgroundColor: isOnline ? theme.statusSynced : theme.statusDanger },
               ]}
             />
             <Text style={styles.netInfoTitle}>
@@ -372,12 +375,12 @@ export const SyncScreen: React.FC<SyncScreenProps> = ({ language, onSyncComplete
   );
 };
 
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: TOKENS.background },
+const createStyles = (theme: ThemeTokens, isDark: boolean) => StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: theme.background },
   container: { flex: 1, paddingHorizontal: 16, paddingTop: 10 },
   header: { marginBottom: 10 },
-  screenHeading: { fontSize: 18, fontWeight: '700', color: TOKENS.foreground, fontFamily: FONTS.mono },
-  screenSubheading: { fontSize: 11, color: TOKENS.mutedForeground, marginTop: 2, fontFamily: FONTS.mono },
+  screenHeading: { fontSize: 18, fontWeight: '700', color: theme.foreground, fontFamily: FONTS.mono },
+  screenSubheading: { fontSize: 11, color: theme.mutedForeground, marginTop: 2, fontFamily: FONTS.mono },
   networkBanner: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -388,35 +391,35 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1,
   },
-  netOnline: { backgroundColor: '#0B2313', borderColor: TOKENS.riskLow },
-  netOffline: { backgroundColor: '#281113', borderColor: TOKENS.riskCritical },
+  netOnline: { backgroundColor: isDark ? '#102B1B' : '#DCFCE7', borderColor: theme.statusSynced },
+  netOffline: { backgroundColor: isDark ? '#2D1618' : '#FEE2E2', borderColor: theme.statusDanger },
   netInfoLeft: { flexDirection: 'row', alignItems: 'center' },
   statusPillDot: { width: 8, height: 8, borderRadius: 4, marginRight: 8 },
-  netInfoTitle: { fontSize: 12, fontWeight: '700', color: TOKENS.foreground, fontFamily: FONTS.mono },
-  netInfoType: { fontSize: 11, fontWeight: '700', color: TOKENS.mutedForeground, fontFamily: FONTS.mono },
+  netInfoTitle: { fontSize: 12, fontWeight: '700', color: theme.foreground, fontFamily: FONTS.mono },
+  netInfoType: { fontSize: 11, fontWeight: '700', color: theme.mutedForeground, fontFamily: FONTS.mono },
   summaryCard: {
-    backgroundColor: TOKENS.card,
+    backgroundColor: theme.card,
     borderRadius: 8,
     padding: 14,
     borderWidth: 1,
-    borderColor: TOKENS.border,
+    borderColor: theme.border,
     marginBottom: 12,
   },
   counterRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
-  counterLabel: { fontSize: 10, fontWeight: '700', color: TOKENS.mutedForeground, letterSpacing: 0.8, fontFamily: FONTS.mono },
-  counterNumber: { fontSize: 32, fontWeight: '900', color: TOKENS.primary, marginTop: 2, fontFamily: FONTS.mono },
+  counterLabel: { fontSize: 10, fontWeight: '700', color: theme.mutedForeground, letterSpacing: 0.8, fontFamily: FONTS.mono },
+  counterNumber: { fontSize: 32, fontWeight: '900', color: theme.primary, marginTop: 2, fontFamily: FONTS.mono },
   counterMeta: { alignItems: 'flex-end', gap: 3 },
-  metaLabel: { fontSize: 11, color: TOKENS.mutedForeground, fontWeight: '600', fontFamily: FONTS.mono },
+  metaLabel: { fontSize: 11, color: theme.mutedForeground, fontWeight: '600', fontFamily: FONTS.mono },
   syncNowButton: {
-    backgroundColor: TOKENS.primary,
+    backgroundColor: theme.primary,
     minHeight: METRICS.minTouchTarget,
     borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },
   syncNowButtonDisabled: { opacity: 0.6 },
-  syncNowButtonEmpty: { backgroundColor: TOKENS.secondary, borderWidth: 1, borderColor: TOKENS.border },
-  syncNowButtonText: { fontSize: 13, fontWeight: '800', color: TOKENS.primaryForeground, fontFamily: FONTS.mono, letterSpacing: 0.5 },
+  syncNowButtonEmpty: { backgroundColor: theme.secondary, borderWidth: 1, borderColor: theme.border },
+  syncNowButtonText: { fontSize: 13, fontWeight: '800', color: theme.primaryForeground, fontFamily: FONTS.mono, letterSpacing: 0.5 },
   syncingRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   exportBackupButton: {
     marginTop: 10,
@@ -424,54 +427,54 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderTopWidth: 1,
-    borderTopColor: TOKENS.border,
+    borderTopColor: theme.border,
   },
-  exportBackupButtonText: { fontSize: 11, fontWeight: '700', color: TOKENS.primary, fontFamily: FONTS.mono },
+  exportBackupButtonText: { fontSize: 11, fontWeight: '700', color: theme.primary, fontFamily: FONTS.mono },
   toggleRow: {
     flexDirection: 'row',
-    backgroundColor: TOKENS.card,
+    backgroundColor: theme.card,
     borderRadius: 6,
     padding: 3,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: TOKENS.border,
+    borderColor: theme.border,
   },
   toggleBtn: { flex: 1, minHeight: 36, justifyContent: 'center', alignItems: 'center', borderRadius: 4 },
-  toggleBtnActive: { backgroundColor: TOKENS.primary },
-  toggleBtnText: { fontSize: 11, fontWeight: '700', color: TOKENS.mutedForeground, fontFamily: FONTS.mono },
-  toggleBtnTextActive: { color: TOKENS.primaryForeground, fontWeight: '800' },
+  toggleBtnActive: { backgroundColor: theme.primary },
+  toggleBtnText: { fontSize: 11, fontWeight: '700', color: theme.mutedForeground, fontFamily: FONTS.mono },
+  toggleBtnTextActive: { color: theme.primaryForeground, fontWeight: '800' },
   listContent: { paddingBottom: 32 },
   queueCard: {
-    backgroundColor: TOKENS.card,
+    backgroundColor: theme.card,
     borderRadius: 6,
     padding: 12,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: TOKENS.border,
+    borderColor: theme.border,
   },
   queueCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  categoryBadge: { backgroundColor: TOKENS.secondary, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 3, borderWidth: 1, borderColor: TOKENS.border },
-  categoryBadgeText: { fontSize: 10, fontWeight: '700', color: TOKENS.mutedForeground, fontFamily: FONTS.mono },
+  categoryBadge: { backgroundColor: theme.secondary, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 3, borderWidth: 1, borderColor: theme.border },
+  categoryBadgeText: { fontSize: 10, fontWeight: '700', color: theme.mutedForeground, fontFamily: FONTS.mono },
   syncBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 3 },
-  syncedBadge: { backgroundColor: '#0B2313', borderWidth: 1, borderColor: TOKENS.riskLow },
-  syncedBadgeText: { color: TOKENS.riskLow, fontSize: 10, fontWeight: '800', fontFamily: FONTS.mono },
-  unsyncedBadge: { backgroundColor: '#281E0B', borderWidth: 1, borderColor: TOKENS.primary },
-  unsyncedBadgeText: { color: TOKENS.primary, fontSize: 10, fontWeight: '800', fontFamily: FONTS.mono },
-  queueLocation: { fontSize: 12, fontWeight: '700', color: TOKENS.foreground, marginBottom: 3, fontFamily: FONTS.mono },
-  queueDesc: { fontSize: 12, color: TOKENS.mutedForeground, lineHeight: 16, marginBottom: 6 },
+  syncedBadge: { backgroundColor: isDark ? '#102B1B' : '#DCFCE7', borderWidth: 1, borderColor: theme.statusSynced },
+  syncedBadgeText: { color: theme.statusSynced, fontSize: 10, fontWeight: '800', fontFamily: FONTS.mono },
+  unsyncedBadge: { backgroundColor: isDark ? '#33200B' : '#FEF3C7', borderWidth: 1, borderColor: theme.statusPending },
+  unsyncedBadgeText: { color: theme.statusPending, fontSize: 10, fontWeight: '800', fontFamily: FONTS.mono },
+  queueLocation: { fontSize: 12, fontWeight: '700', color: theme.foreground, marginBottom: 3, fontFamily: FONTS.mono },
+  queueDesc: { fontSize: 12, color: theme.mutedForeground, lineHeight: 16, marginBottom: 6 },
   queueCardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: TOKENS.border,
+    borderTopColor: theme.border,
     paddingTop: 5,
   },
-  queueIdText: { fontSize: 9, fontFamily: FONTS.mono, color: TOKENS.mutedForeground },
-  queueDateText: { fontSize: 9, color: TOKENS.mutedForeground, fontFamily: FONTS.mono },
+  queueIdText: { fontSize: 9, fontFamily: FONTS.mono, color: theme.mutedForeground },
+  queueDateText: { fontSize: 9, color: theme.mutedForeground, fontFamily: FONTS.mono },
   emptyBox: { paddingVertical: 28, alignItems: 'center' },
-  emptyTitle: { fontSize: 14, fontWeight: '700', color: TOKENS.foreground, fontFamily: FONTS.mono },
-  emptyDesc: { fontSize: 11, color: TOKENS.mutedForeground, textAlign: 'center', marginTop: 4, paddingHorizontal: 20 },
+  emptyTitle: { fontSize: 14, fontWeight: '700', color: theme.foreground, fontFamily: FONTS.mono },
+  emptyDesc: { fontSize: 11, color: theme.mutedForeground, textAlign: 'center', marginTop: 4, paddingHorizontal: 20 },
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.85)',
@@ -480,36 +483,36 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalCard: {
-    backgroundColor: TOKENS.card,
+    backgroundColor: theme.card,
     borderRadius: 8,
     padding: 16,
     width: '100%',
     maxHeight: '80%',
     borderWidth: 1,
-    borderColor: TOKENS.primary,
+    borderColor: theme.primary,
   },
-  modalTitle: { fontSize: 16, fontWeight: '800', color: TOKENS.foreground, marginBottom: 4, fontFamily: FONTS.mono },
-  modalSubtitle: { fontSize: 11, color: TOKENS.mutedForeground, marginBottom: 10, lineHeight: 15 },
+  modalTitle: { fontSize: 16, fontWeight: '800', color: theme.foreground, marginBottom: 4, fontFamily: FONTS.mono },
+  modalSubtitle: { fontSize: 11, color: theme.mutedForeground, marginBottom: 10, lineHeight: 15 },
   exportScroll: {
-    backgroundColor: TOKENS.background,
+    backgroundColor: theme.background,
     borderRadius: 6,
     padding: 10,
     marginBottom: 12,
     maxHeight: 280,
     borderWidth: 1,
-    borderColor: TOKENS.border,
+    borderColor: theme.border,
   },
   exportCodeText: {
-    color: TOKENS.primary,
+    color: theme.primary,
     fontFamily: FONTS.mono,
     fontSize: 10,
   },
   modalCloseBtn: {
-    backgroundColor: TOKENS.primary,
+    backgroundColor: theme.primary,
     minHeight: METRICS.minTouchTarget,
     borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  modalCloseBtnText: { color: TOKENS.primaryForeground, fontWeight: '800', fontSize: 13, fontFamily: FONTS.mono },
+  modalCloseBtnText: { color: theme.primaryForeground, fontWeight: '800', fontSize: 13, fontFamily: FONTS.mono },
 });

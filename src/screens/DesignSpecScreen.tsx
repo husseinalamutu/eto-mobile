@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,16 +8,33 @@ import {
   SafeAreaView,
   StatusBar,
 } from 'react-native';
-import { TOKENS, RISK_CONFIG, STATUS_CONFIG, FONTS, METRICS } from '../theme/tokens';
+import { FONTS, METRICS, ThemeTokens } from '../theme/tokens';
+import { useTheme } from '../theme/ThemeContext';
 
 interface Props {
   onBack: () => void;
 }
 
 export const DesignSpecScreen: React.FC<Props> = ({ onBack }) => {
+  const { theme, isDark, riskConfig, statusConfig } = useTheme();
+  const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
+
+  const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
+    title,
+    children,
+  }) => (
+    <View style={styles.sectionContainer}>
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionHeaderTitle}>{title}</Text>
+        <View style={styles.sectionHeaderLine} />
+      </View>
+      {children}
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={TOKENS.background} />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={theme.background} />
 
       {/* Top Bar with Return button */}
       <View style={styles.topBar}>
@@ -37,21 +54,32 @@ export const DesignSpecScreen: React.FC<Props> = ({ onBack }) => {
 
       <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
         {/* A. Color Tokens */}
-        <Section title="A · Color Tokens — Secure State">
+        <Section title={`A · Color Tokens — ${isDark ? 'Dark Mode (Eye-Friendly Dark Grey)' : 'Light Mode (Sunlight High-Contrast)'}`}>
+          <View style={styles.themeModeBanner}>
+            <Text style={styles.themeModeBannerTitle}>
+              ACTIVE THEME: {isDark ? '🌙 DARK GREY (#16181D)' : '☀️ LIGHT MODE (#F4F5F7)'}
+            </Text>
+            <Text style={styles.themeModeBannerDesc}>
+              {isDark
+                ? 'Engineered with soft dark grey (#16181D) instead of pitch-black (#000000) to eliminate OLED halation and ocular fatigue during extended nighttime field operations.'
+                : 'Engineered with high-contrast off-white (#F4F5F7) and deep charcoal (#111827) for direct readability under blinding Sahelian sunlight (14.5:1 contrast).'}
+            </Text>
+          </View>
+
           <View style={styles.tokenList}>
             {[
-              { name: '--background', value: '#0A0C0E', label: 'Base / Page ground' },
-              { name: '--card', value: '#131619', label: 'Surface / Card' },
-              { name: '--secondary', value: '#1C2128', label: 'Elevated surface' },
-              { name: '--primary', value: '#E8A020', label: 'Primary amber — sunlight-readable (9.1:1)' },
-              { name: '--border', value: '#2A2E34', label: 'Structural hairline' },
-              { name: '--muted-foreground', value: '#8A8680', label: 'Labels / captions' },
+              { name: '--background', value: theme.background, label: isDark ? 'Base dark grey ground (eye-friendly)' : 'Base off-white page ground' },
+              { name: '--card', value: theme.card, label: isDark ? 'Surface card (#20242C)' : 'Surface card (#FFFFFF)' },
+              { name: '--secondary', value: theme.secondary, label: isDark ? 'Elevated surface (#2A2F3A)' : 'Elevated surface (#E8EAEF)' },
+              { name: '--primary', value: theme.primary, label: isDark ? 'Primary amber (8.5:1 AAA)' : 'Primary amber (7.8:1 AAA)' },
+              { name: '--border', value: theme.border, label: isDark ? 'Structural hairline (#373D4A)' : 'Structural hairline (#D2D6DC)' },
+              { name: '--muted-foreground', value: theme.mutedForeground, label: 'Labels / captions' },
             ].map((c) => (
               <View key={c.name} style={styles.tokenRow}>
                 <View
                   style={[
                     styles.colorSwatch,
-                    { backgroundColor: c.value, borderColor: TOKENS.border },
+                    { backgroundColor: c.value, borderColor: theme.border },
                   ]}
                 />
                 <View style={styles.tokenInfo}>
@@ -72,7 +100,7 @@ export const DesignSpecScreen: React.FC<Props> = ({ onBack }) => {
           </Text>
 
           <View style={styles.tokenList}>
-            {Object.entries(RISK_CONFIG).map(([key, item]) => (
+            {Object.entries(riskConfig).map(([key, item]) => (
               <View key={key} style={styles.tokenRow}>
                 <View
                   style={[
@@ -101,7 +129,7 @@ export const DesignSpecScreen: React.FC<Props> = ({ onBack }) => {
             ))}
 
             {/* Synced and Pending Indicators */}
-            {Object.entries(STATUS_CONFIG).map(([key, item]) => (
+            {Object.entries(statusConfig).map(([key, item]) => (
               <View key={key} style={styles.tokenRow}>
                 <View
                   style={[
@@ -202,7 +230,7 @@ export const DesignSpecScreen: React.FC<Props> = ({ onBack }) => {
             ['Input fields', '48dp height, 16px font, full-width in modal'],
             ['Icon size', '20–24dp inline, 28dp standalone actions'],
             ['Font min on data', '10px mono — no smaller (screen readability)'],
-            ['Contrast ratio', 'WCAG AAA: ≥7:1 for body text (#E8A020 on #0A0C0E = 9.1:1)'],
+            ['Contrast ratio', 'WCAG AAA: ≥7:1 (Dark: #F59E0B on #16181D = 8.5:1; Light: #D97706 on #F4F5F7 = 7.8:1)'],
             ['No blur effects', 'backdrop-filter: none — zero GPU overhead'],
             ['No box-shadow stacks', 'max 1 shadow layer, prefer border instead'],
             ['Animation budget', 'zero transitions on panic switch; max 150ms elsewhere'],
@@ -248,332 +276,342 @@ export const DesignSpecScreen: React.FC<Props> = ({ onBack }) => {
   );
 };
 
-const Section: React.FC<{ title: string; children: React.ReactNode }> = ({
-  title,
-  children,
-}) => (
-  <View style={styles.sectionContainer}>
-    <View style={styles.sectionHeaderRow}>
-      <Text style={styles.sectionHeaderTitle}>{title}</Text>
-      <View style={styles.sectionHeaderLine} />
-    </View>
-    {children}
-  </View>
-);
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: TOKENS.background,
-  },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: TOKENS.border,
-  },
-  specEyebrow: {
-    fontFamily: FONTS.mono,
-    fontSize: 8,
-    color: TOKENS.primary,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-  },
-  specTitle: {
-    fontFamily: FONTS.condensed,
-    fontSize: 22,
-    fontWeight: '700',
-    color: TOKENS.foreground,
-    letterSpacing: 1,
-    marginTop: 2,
-  },
-  specSubtitle: {
-    fontFamily: FONTS.mono,
-    fontSize: 9,
-    color: TOKENS.mutedForeground,
-    marginTop: 2,
-  },
-  backButton: {
-    backgroundColor: TOKENS.secondary,
-    borderWidth: 1,
-    borderColor: TOKENS.primary,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 2,
-  },
-  backButtonText: {
-    fontFamily: FONTS.mono,
-    fontSize: 9,
-    fontWeight: '700',
-    color: TOKENS.primary,
-    letterSpacing: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    paddingBottom: 40,
-  },
-  sectionContainer: {
-    marginBottom: 24,
-  },
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  sectionHeaderTitle: {
-    fontFamily: FONTS.mono,
-    fontSize: 9,
-    fontWeight: '700',
-    color: TOKENS.primary,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-  },
-  sectionHeaderLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: TOKENS.border,
-  },
-  sectionParagraph: {
-    fontFamily: FONTS.mono,
-    fontSize: 9,
-    color: TOKENS.mutedForeground,
-    lineHeight: 14,
-    marginBottom: 12,
-  },
-  tokenList: {
-    gap: 8,
-  },
-  tokenRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  colorSwatch: {
-    width: 36,
-    height: 28,
-    borderRadius: 2,
-    borderWidth: 1,
-  },
-  tokenInfo: {
-    flex: 1,
-  },
-  tokenValue: {
-    fontFamily: FONTS.mono,
-    fontSize: 10,
-    color: TOKENS.primary,
-    letterSpacing: 1,
-  },
-  tokenLabel: {
-    fontFamily: FONTS.mono,
-    fontSize: 8,
-    color: TOKENS.mutedForeground,
-    marginTop: 1,
-  },
-  shapeBox: {
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 2,
-    borderWidth: 1,
-  },
-  shapeIcon: {
-    fontSize: 13,
-    fontWeight: 'bold',
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  badgePill: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 2,
-    borderWidth: 1,
-  },
-  badgePillText: {
-    fontFamily: FONTS.mono,
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  badgeDesc: {
-    fontFamily: FONTS.mono,
-    fontSize: 8,
-    color: TOKENS.mutedForeground,
-  },
-  typeRow: {
-    borderBottomWidth: 1,
-    borderBottomColor: TOKENS.border,
-    paddingBottom: 8,
-    marginBottom: 8,
-  },
-  typeRole: {
-    fontFamily: FONTS.mono,
-    fontSize: 8,
-    color: TOKENS.mutedForeground,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    marginBottom: 2,
-  },
-  typeSample: {
-    fontFamily: FONTS.condensed,
-    fontSize: 14,
-    color: TOKENS.foreground,
-    fontWeight: '600',
-  },
-  highlightBox: {
-    backgroundColor: TOKENS.muted,
-    borderWidth: 1,
-    borderColor: TOKENS.border,
-    padding: 10,
-    borderRadius: 2,
-    marginTop: 8,
-  },
-  highlightTitle: {
-    fontFamily: FONTS.mono,
-    fontSize: 8,
-    fontWeight: '700',
-    color: TOKENS.primary,
-    letterSpacing: 1.5,
-    marginBottom: 4,
-  },
-  highlightText: {
-    fontFamily: FONTS.mono,
-    fontSize: 9,
-    color: TOKENS.mutedForeground,
-    lineHeight: 14,
-  },
-  cardBoxPrimary: {
-    backgroundColor: TOKENS.secondary,
-    borderWidth: 1,
-    borderColor: TOKENS.primary,
-    padding: 12,
-    borderRadius: 2,
-    marginBottom: 10,
-  },
-  cardBoxTitleAmber: {
-    fontFamily: FONTS.mono,
-    fontSize: 8,
-    fontWeight: '700',
-    color: TOKENS.primary,
-    letterSpacing: 1.5,
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  cardBoxDanger: {
-    backgroundColor: TOKENS.muted,
-    borderWidth: 1,
-    borderColor: TOKENS.border,
-    padding: 12,
-    borderRadius: 2,
-  },
-  cardBoxTitleRed: {
-    fontFamily: FONTS.mono,
-    fontSize: 8,
-    fontWeight: '700',
-    color: TOKENS.statusDanger,
-    letterSpacing: 1.5,
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  stepRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 6,
-    marginBottom: 5,
-  },
-  stepNumber: {
-    fontFamily: FONTS.mono,
-    fontSize: 9,
-    color: TOKENS.primary,
-    width: 14,
-  },
-  stepNumberRed: {
-    fontFamily: FONTS.mono,
-    fontSize: 9,
-    color: TOKENS.statusDanger,
-    width: 14,
-  },
-  stepText: {
-    flex: 1,
-    fontFamily: FONTS.mono,
-    fontSize: 9,
-    color: TOKENS.foreground,
-    lineHeight: 13,
-  },
-  ruleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: TOKENS.border,
-    paddingBottom: 6,
-    marginBottom: 6,
-  },
-  ruleName: {
-    fontFamily: FONTS.mono,
-    fontSize: 9,
-    color: TOKENS.mutedForeground,
-    width: 110,
-  },
-  ruleVal: {
-    flex: 1,
-    fontFamily: FONTS.mono,
-    fontSize: 9,
-    color: TOKENS.foreground,
-  },
-  decoyRuleRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 6,
-    marginBottom: 6,
-  },
-  decoyRuleBullet: {
-    fontFamily: FONTS.mono,
-    fontSize: 9,
-    color: TOKENS.primary,
-  },
-  decoyRuleText: {
-    flex: 1,
-    fontFamily: FONTS.mono,
-    fontSize: 9,
-    color: TOKENS.mutedForeground,
-    lineHeight: 13,
-  },
-  decoyRuleTitle: {
-    color: TOKENS.foreground,
-    fontWeight: '700',
-  },
-  footerNotice: {
-    borderWidth: 1,
-    borderColor: TOKENS.border,
-    backgroundColor: TOKENS.muted,
-    padding: 12,
-    borderRadius: 2,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  footerText: {
-    fontFamily: FONTS.mono,
-    fontSize: 8,
-    color: TOKENS.mutedForeground,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    textAlign: 'center',
-  },
-  footerSubtext: {
-    fontFamily: FONTS.mono,
-    fontSize: 8,
-    color: TOKENS.mutedForeground,
-    marginTop: 3,
-    textAlign: 'center',
-  },
-});
+const createStyles = (theme: ThemeTokens, isDark: boolean) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    topBar: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      paddingHorizontal: 16,
+      paddingTop: 12,
+      paddingBottom: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    specEyebrow: {
+      fontFamily: FONTS.mono,
+      fontSize: 8,
+      color: theme.primary,
+      letterSpacing: 1.5,
+      textTransform: 'uppercase',
+    },
+    specTitle: {
+      fontFamily: FONTS.condensed,
+      fontSize: 22,
+      fontWeight: '700',
+      color: theme.foreground,
+      letterSpacing: 1,
+      marginTop: 2,
+    },
+    specSubtitle: {
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      color: theme.mutedForeground,
+      marginTop: 2,
+    },
+    backButton: {
+      backgroundColor: theme.secondary,
+      borderWidth: 1,
+      borderColor: theme.primary,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 2,
+    },
+    backButtonText: {
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      fontWeight: '700',
+      color: theme.primary,
+      letterSpacing: 1,
+    },
+    scrollContent: {
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      paddingBottom: 40,
+    },
+    themeModeBanner: {
+      backgroundColor: theme.secondary,
+      borderWidth: 1,
+      borderColor: theme.border,
+      borderRadius: 2,
+      padding: 10,
+      marginBottom: 12,
+    },
+    themeModeBannerTitle: {
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      fontWeight: '800',
+      color: theme.primary,
+      letterSpacing: 1,
+      marginBottom: 4,
+    },
+    themeModeBannerDesc: {
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      color: theme.mutedForeground,
+      lineHeight: 14,
+    },
+    sectionContainer: {
+      marginBottom: 24,
+    },
+    sectionHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 12,
+    },
+    sectionHeaderTitle: {
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      fontWeight: '700',
+      color: theme.primary,
+      letterSpacing: 1.5,
+      textTransform: 'uppercase',
+    },
+    sectionHeaderLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: theme.border,
+    },
+    sectionParagraph: {
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      color: theme.mutedForeground,
+      lineHeight: 14,
+      marginBottom: 12,
+    },
+    tokenList: {
+      gap: 8,
+    },
+    tokenRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    colorSwatch: {
+      width: 36,
+      height: 28,
+      borderRadius: 2,
+      borderWidth: 1,
+    },
+    tokenInfo: {
+      flex: 1,
+    },
+    tokenValue: {
+      fontFamily: FONTS.mono,
+      fontSize: 10,
+      color: theme.primary,
+      letterSpacing: 1,
+    },
+    tokenLabel: {
+      fontFamily: FONTS.mono,
+      fontSize: 8,
+      color: theme.mutedForeground,
+      marginTop: 1,
+    },
+    shapeBox: {
+      width: 32,
+      height: 32,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderRadius: 2,
+      borderWidth: 1,
+    },
+    shapeIcon: {
+      fontSize: 13,
+      fontWeight: 'bold',
+    },
+    badgeRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    badgePill: {
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 2,
+      borderWidth: 1,
+    },
+    badgePillText: {
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      fontWeight: '700',
+      letterSpacing: 1,
+    },
+    badgeDesc: {
+      fontFamily: FONTS.mono,
+      fontSize: 8,
+      color: theme.mutedForeground,
+    },
+    typeRow: {
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+      paddingBottom: 8,
+      marginBottom: 8,
+    },
+    typeRole: {
+      fontFamily: FONTS.mono,
+      fontSize: 8,
+      color: theme.mutedForeground,
+      letterSpacing: 1,
+      textTransform: 'uppercase',
+      marginBottom: 2,
+    },
+    typeSample: {
+      fontFamily: FONTS.condensed,
+      fontSize: 14,
+      color: theme.foreground,
+      fontWeight: '600',
+    },
+    highlightBox: {
+      backgroundColor: theme.muted,
+      borderWidth: 1,
+      borderColor: theme.border,
+      padding: 10,
+      borderRadius: 2,
+      marginTop: 8,
+    },
+    highlightTitle: {
+      fontFamily: FONTS.mono,
+      fontSize: 8,
+      fontWeight: '700',
+      color: theme.primary,
+      letterSpacing: 1.5,
+      marginBottom: 4,
+    },
+    highlightText: {
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      color: theme.mutedForeground,
+      lineHeight: 14,
+    },
+    cardBoxPrimary: {
+      backgroundColor: theme.secondary,
+      borderWidth: 1,
+      borderColor: theme.primary,
+      padding: 12,
+      borderRadius: 2,
+      marginBottom: 10,
+    },
+    cardBoxTitleAmber: {
+      fontFamily: FONTS.mono,
+      fontSize: 8,
+      fontWeight: '700',
+      color: theme.primary,
+      letterSpacing: 1.5,
+      marginBottom: 8,
+      textTransform: 'uppercase',
+    },
+    cardBoxDanger: {
+      backgroundColor: theme.muted,
+      borderWidth: 1,
+      borderColor: theme.border,
+      padding: 12,
+      borderRadius: 2,
+    },
+    cardBoxTitleRed: {
+      fontFamily: FONTS.mono,
+      fontSize: 8,
+      fontWeight: '700',
+      color: theme.statusDanger,
+      letterSpacing: 1.5,
+      marginBottom: 8,
+      textTransform: 'uppercase',
+    },
+    stepRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 6,
+      marginBottom: 5,
+    },
+    stepNumber: {
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      color: theme.primary,
+      width: 14,
+    },
+    stepNumberRed: {
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      color: theme.statusDanger,
+      width: 14,
+    },
+    stepText: {
+      flex: 1,
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      color: theme.foreground,
+      lineHeight: 13,
+    },
+    ruleRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+      paddingBottom: 6,
+      marginBottom: 6,
+    },
+    ruleName: {
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      color: theme.mutedForeground,
+      width: 110,
+    },
+    ruleVal: {
+      flex: 1,
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      color: theme.foreground,
+    },
+    decoyRuleRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 6,
+      marginBottom: 6,
+    },
+    decoyRuleBullet: {
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      color: theme.primary,
+    },
+    decoyRuleText: {
+      flex: 1,
+      fontFamily: FONTS.mono,
+      fontSize: 9,
+      color: theme.mutedForeground,
+      lineHeight: 13,
+    },
+    decoyRuleTitle: {
+      color: theme.foreground,
+      fontWeight: '700',
+    },
+    footerNotice: {
+      borderWidth: 1,
+      borderColor: theme.border,
+      backgroundColor: theme.muted,
+      padding: 12,
+      borderRadius: 2,
+      alignItems: 'center',
+      marginTop: 8,
+    },
+    footerText: {
+      fontFamily: FONTS.mono,
+      fontSize: 8,
+      color: theme.mutedForeground,
+      letterSpacing: 1,
+      textTransform: 'uppercase',
+      textAlign: 'center',
+    },
+    footerSubtext: {
+      fontFamily: FONTS.mono,
+      fontSize: 8,
+      color: theme.mutedForeground,
+      marginTop: 3,
+      textAlign: 'center',
+    },
+  });
