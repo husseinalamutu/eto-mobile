@@ -36,7 +36,7 @@ const LANGUAGES: LanguageOption[] = [
     code: 'ha',
     flag: '🇳🇬',
     name: 'Hausa',
-    nativeScript: 'هَوْسَ',
+    nativeScript: 'Harshen Hausa',
     subtext: 'HA · CI GABA →',
   },
   {

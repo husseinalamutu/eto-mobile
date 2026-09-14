@@ -33,7 +33,7 @@
 - **EWEA Conflict Prevention:** Flags infrastructure failures and resource friction early to enable village elders and peace committees to mediate before bloodshed.
 - **Battlefield-Grade Threat Defense:** Gross-motor panic trigger (<100ms swap to Decoy), Android `FLAG_SECURE` window shielding, and instant SQLite panic wipe.
 - **Plausible Agricultural Cover:** High-fidelity BOSADP Grain & Weather Bulletin with real Maiduguri commodity prices, 5-day weather, and bulk grain calculator.
-- **Quad-Lingual Inclusion:** English, Hausa (هَوْسَ in Ajami), Yorùbá, Igbo, and French (`fr`) for Lake Chad Basin trans-border resilience.
+- **Penta-Lingual Inclusion:** English, Hausa (Harshen Hausa), Yorùbá, Igbo, and French (`fr`) for Lake Chad Basin trans-border resilience.
 
 ---
 

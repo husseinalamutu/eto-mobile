@@ -86,7 +86,7 @@ Budget smartphones in Northern Nigeria (itel, Tecno, Unisoc SC9832E chipsets) ha
 
 Language is essential to grassroots trust. ETO provides quad-lingual regional coverage with **35% text expansion resilience**:
 - 🇬🇧 **English:** Administrative standard.
-- 🇳🇬 **Hausa (هَوْسَ):** Lingua franca of 70M+ people across Northern Nigeria and the Sahel, including native Arabic Ajami script.
+- 🇳🇬 **Hausa (Harshen Hausa):** Lingua franca of 70M+ people across Northern Nigeria and the Sahel.
 - 🇳🇬 **Yorùbá (Èdè Yorùbá):** Southwest civic monitoring.
 - 🇳🇬 **Igbo (Asụsụ Igbo):** Southeast civic monitoring.
 - 🇫🇷 **Français:** Regional trans-border coverage for Niger, Chad, and Cameroon communities across the Lake Chad Basin.
