@@ -1,7 +1,7 @@
 # ETO (ÈTÒ) • PITCH DECK
 ### Early-Warning Early-Action (EWEA) Civic Ledger for Transformative Peace
 **OSF × Andela Hackathon: "Transformative Peace in Africa"**
-*Target: Sahel & Northern Nigeria • Hardware: 1GB RAM Android Go • Threat Model: Hostile Checkpoints*
+*Target: Pan-Nigeria & The Sahel • Hardware: 1GB RAM Android Go • Threat Model: Armed Roadblocks & Phone Inspections*
 
 ---
 
@@ -9,7 +9,7 @@
 - **Project Name:** ETO (Ètò)
 - **Tagline:** Early-Warning Early-Action for Transformative Peace Under Physical & Digital Duress
 - **Challenge Track:** Transformative Peace, Human Rights Defense & Social Cohesion
-- **Target Geography:** Northern Nigeria & Lake Chad Basin (Kano, Kaduna, Borno, Niger/Chad border zones)
+- **Target Geography:** Pan-Nigeria (North, South-West, South-East) & Lake Chad Basin (Kano, Kaduna, Borno, Oyo, Enugu, and trans-border corridors)
 - **Technical Architecture:** Local-First React Native (Expo SDK 52) • 1GB RAM Android Go Optimized
 
 ---

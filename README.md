@@ -7,10 +7,10 @@
 
 ## 🌍 Executive Summary & Challenge Alignment
 
-In the Lake Chad Basin and Northern Nigeria (Kano, Kaduna, Borno, Katsina, Sokoto), rural citizens and frontline community peace monitors operate in extreme environments characterized by:
+Across all geopolitical zones of Nigeria and the Sahel (from the agrarian corridors of Oyo and Enugu to Kano, Kaduna, and Borno), frontline community peace monitors and rural citizens operate in high-risk environments characterized by:
 1. **Severe Information Asymmetry:** Legitimate civic subsidies, legal aid clinics, and agricultural development grants from international partners (OSF Africa, FAO) often never reach vulnerable populations due to bureaucratic opacity and lack of reliable internet.
-2. **Resource Disputes & Social Friction:** Tensions over communal boreholes, solar irrigation points, and pastoralist grazing corridors frequently escalate into violence when early-warning channels are absent.
-3. **Physical & Digital Peril at Roadblocks:** Field monitors carrying smartphones through illegal roadblocks mounted by bandits, unknown armed men, or insurgents face severe danger if sensitive incident logs or reports are discovered.
+2. **Resource Disputes & Social Friction:** Tensions over communal boreholes, contested farmlands, grazing routes, and boundary friction frequently escalate into bloodshed when early-warning channels are absent.
+3. **Physical & Digital Peril at Roadblocks:** Field monitors carrying smartphones through illegal roadblocks mounted by bandits, unknown armed men, or local armed groups face severe danger if sensitive conflict logs or incident reports are discovered.
 4. **Hardware Poverty:** Field devices are frequently ultra-low-end Android Go handsets with 1GB RAM, fluctuating power, and aggressive OEM battery killers that terminate background sync daemons.
 
 **Eto** (Yoruba/Hausa-influenced for *Order, System, or Organization*) addresses this gap with a resilient, offline-first React Native architecture designed for physical survival and information trust.

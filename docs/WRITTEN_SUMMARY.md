@@ -9,12 +9,13 @@
 **Secondary Track:** Transparency, Accountability & Frontline Protection  
 
 ### The Transformative Peace Thesis
-In the Sahel and Northern Nigeria, communal violence rarely starts with ideology—it starts with **unaddressed resource contention**:
-- A communal solar borehole breaks down, forcing cattle herders into cultivated farmlands.
-- Subsidized fertilizer or drought-resistant seed vouchers are diverted by local officials, creating acute scarcity and inter-ethnic tensions.
-- Armed stops and informal checkpoint extortion escalate into retaliatory violence.
+Across Nigeria and the wider Sahel, communal violence and insecurity rarely start with ideology—they ignite over **unaddressed resource contention, illegal armed checkpoints, and local grievances**:
+- **North-West & North-Central (Kaduna, Zamfara, Plateau):** Broken solar boreholes force cattle herders into cultivated farmlands, triggering deadly pastoralist-farmer clashes, while bandit road ambushes cut off rural food arteries.
+- **South-East (Enugu, Anambra, Imo):** Non-state armed actors ("Unknown Gunmen") enforce illegal sit-at-home barricades and search citizens' phones at informal roadblocks, while inter-communal land disputes fester in silence.
+- **South-West (Oyo, Ogun, Ondo):** Highway kidnapping along rural forest transit corridors, land grabbing, and farmer-herder tensions in agrarian belts (Oke-Ogun, Saki).
+- **North-East & Lake Chad Basin (Borno, Yobe, Niger/Chad borders):** Remnant insurgent activity, IDP relief aid diversion, and border transit hazards.
 
-**ETO (Ètò)** transforms frontline community peace monitors, village elders, and rural farmers into a **decentralized, offline-first Early-Warning Early-Action (EWEA) network**. By catching infrastructure failures, resource contention, and misappropriation *before* they erupt into armed conflict, ETO operationalizes transformative peace from the grassroots up.
+**ETO (Ètò)** transforms frontline community peace monitors, village elders, and rural citizens across Nigeria into a **decentralized, offline-first Early-Warning Early-Action (EWEA) network**. By catching infrastructure failures, land disputes, and extortion *before* they erupt into armed violence, ETO operationalizes transformative peace from the grassroots up.
 
 ---
 
@@ -37,7 +38,7 @@ In low-resource environments plagued by misinformation, digital content is usele
 
 ## 3. Threat Model Defense & Physical Protection Architecture
 
-Frontline monitors face physical danger at armed checkpoints in Borno, Kaduna, and the Lake Chad Basin. ETO implements a **battlefield-tested threat model defense**:
+Frontline monitors face physical danger at illegal roadblocks, bandit stops, and armed checkpoints across Nigeria (whether traveling transit corridors in Kaduna/Zamfara, rural Enugu/Anambra, or the Lake Chad Basin). ETO implements a **battlefield-tested threat model defense**:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
