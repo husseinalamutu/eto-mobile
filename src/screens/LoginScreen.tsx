@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   StatusBar,
   Modal,
+  BackHandler,
 } from 'react-native';
 import { Language } from '../types';
 import { translations } from '../i18n/translations';
@@ -56,6 +57,21 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     }
     loadPins();
   }, []);
+
+  // Hardware back button support (Android) to return to active ledger
+  useEffect(() => {
+    const backAction = () => {
+      onUnlock();
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [onUnlock]);
 
   const handleDigitPress = async (digit: string) => {
     if (pin.length >= PIN_LENGTH) return;
@@ -108,30 +124,41 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       <View style={styles.container}>
         {/* Top Bar: Clean & Minimalist */}
         <View style={styles.topBar}>
-          <View style={styles.statusPill}>
-            <View style={styles.statusDot} />
-            <Text style={styles.statusText}>ENCLAVE ACTIVE</Text>
-          </View>
-
-          {/* Language Cycler */}
           <TouchableOpacity
-            style={styles.langPill}
-            onPress={onToggleLanguage}
+            style={styles.backButton}
+            onPress={onUnlock}
             activeOpacity={0.7}
             hitSlop={HIT_SLOP_64}
           >
-            <Text style={styles.langPillText}>
-              {language === 'en'
-                ? '🇬🇧 EN'
-                : language === 'ha'
-                ? '🇳🇬 HA'
-                : language === 'yo'
-                ? '🇳🇬 YO'
-                : language === 'ig'
-                ? '🇳🇬 IG'
-                : '🇫🇷 FR'}
-            </Text>
+            <Text style={styles.backButtonText}>← BACK TO APP</Text>
           </TouchableOpacity>
+
+          <View style={styles.topBarRight}>
+            <View style={styles.statusPill}>
+              <View style={styles.statusDot} />
+              <Text style={styles.statusText}>ENCLAVE ACTIVE</Text>
+            </View>
+
+            {/* Language Cycler */}
+            <TouchableOpacity
+              style={styles.langPill}
+              onPress={onToggleLanguage}
+              activeOpacity={0.7}
+              hitSlop={HIT_SLOP_64}
+            >
+              <Text style={styles.langPillText}>
+                {language === 'en'
+                  ? '🇬🇧 EN'
+                  : language === 'ha'
+                  ? '🇳🇬 HA'
+                  : language === 'yo'
+                  ? '🇳🇬 YO'
+                  : language === 'ig'
+                  ? '🇳🇬 IG'
+                  : '🇫🇷 FR'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Center Auth Card */}
@@ -171,6 +198,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <Text style={styles.quickPinItem}>
               <Text style={styles.quickPinCode}>0000</Text> = Emergency Wipe & Decoy
             </Text>
+
+            <TouchableOpacity
+              style={styles.quickUnlockBtn}
+              onPress={onUnlock}
+              activeOpacity={0.7}
+              hitSlop={HIT_SLOP_64}
+            >
+              <Text style={styles.quickUnlockBtnText}>🔓 1-TAP QUICK UNLOCK (1234)</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Error Container */}
@@ -328,6 +364,26 @@ const createStyles = (theme: ThemeTokens, isDark: boolean) => StyleSheet.create(
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingTop: 4,
+  },
+  backButton: {
+    backgroundColor: theme.secondary,
+    borderWidth: 1,
+    borderColor: theme.border,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 4,
+  },
+  backButtonText: {
+    fontFamily: FONTS.mono,
+    fontSize: 10,
+    fontWeight: '800',
+    color: theme.primary,
+    letterSpacing: 0.5,
+  },
+  topBarRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   statusPill: {
     flexDirection: 'row',
@@ -502,6 +558,22 @@ const createStyles = (theme: ThemeTokens, isDark: boolean) => StyleSheet.create(
   quickPinCode: {
     fontWeight: '800',
     color: theme.foreground,
+  },
+  quickUnlockBtn: {
+    marginTop: 8,
+    backgroundColor: theme.primary,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 3,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+  },
+  quickUnlockBtnText: {
+    fontFamily: FONTS.mono,
+    fontSize: 10,
+    fontWeight: '900',
+    color: theme.primaryForeground,
+    letterSpacing: 0.5,
   },
   guideButton: {
     backgroundColor: theme.secondary,
