@@ -95,8 +95,8 @@ Language is essential to grassroots trust. ETO provides quad-lingual regional co
 
 ## 6. How AI Tools Were Leveraged
 
-AI coding assistants were utilized as force multipliers to:
-1. **Architect Low-Resource Systems:** Authoring lean native state orchestration and avoiding heavy third-party bundle bloat to maintain an overall binary footprint under 1.5MB.
-2. **Synthesize Authentic Conflict Mitigation Datasets:** Grounding civic opportunities in verified OSF Africa, FAO, and BOSADP program guidelines.
-3. **Validate Cryptographic & Database Transactions:** Ensuring resilient SQLite WAL journal configuration and zero-PII data sanitization.
-4. **Cross-Lingual Cultural Localization:** Validating cultural terminology across Hausa, Ajami, Yoruba, Igbo, and French.
+AI coding assistants were utilized as primary engineering partners to:
+1. **End-to-End Application Code Generation:** Writing and assembling the entire React Native (Expo / TypeScript) codebase from scratch—including the modular component architecture, navigation state machines, high-contrast UI screens, and interactive modal workflows.
+2. **Architect Low-Resource Performance:** Implementing lean native state orchestration, integrating `@shopify/flash-list` v2 list virtualization, and optimizing Metro bundling to achieve a lightweight 1.2MB production JavaScript bundle.
+3. **Database & Forensic Security Implementation:** Writing resilient SQLite Write-Ahead Logging (WAL) queries, zero-PII data stripping, and Android `FLAG_SECURE` window shielding to block screenshot leaks.
+4. **Cross-Lingual Localization & Accessibility:** Translating the UI dictionaries across English, Hausa (Harshen Hausa), Yorùbá, Igbo, and French, while calculating WCAG AAA contrast compliance and 64×64 dp touch slop ergonomics.
