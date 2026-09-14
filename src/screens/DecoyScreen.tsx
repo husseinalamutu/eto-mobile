@@ -77,36 +77,23 @@ export const DecoyScreen: React.FC<Props> = ({ onRestore, onLock }) => {
         <Text style={styles.systemSim}>▲▲▲ WiFi 🔋85%</Text>
       </View>
 
-      {/* Stealth Decoy Explainer Banner (Tap to return to Incident Ledger) */}
-      <TouchableOpacity
-        onPress={() => {
-          if (onRestore) onRestore();
-          else if (onLock) onLock();
-        }}
-        activeOpacity={0.8}
-        style={styles.decoyExplainerBanner}
-      >
-        <View style={styles.decoyExplainerHeader}>
-          <Text style={styles.decoyExplainerTitle}>🛡️ STEALTH DECOY ACTIVE (Checkpoint Cover)</Text>
-          <View style={styles.returnBadge}>
-            <Text style={styles.returnBadgeText}>TAP TO EXIT ↩</Text>
-          </View>
-        </View>
-        <Text style={styles.decoyExplainerBody}>
-          Disguised as market grain prices to protect monitors from armed actors at checkpoints. Tap here or hold bottom-left corner for 2 seconds to return to the National Incident Ledger.
-        </Text>
-      </TouchableOpacity>
-
-      {/* Official Government Header — BOSADP Green */}
+      {/* Official Government Header — BOSADP Green (Emblem serves as covert exit trigger) */}
       <View style={styles.headerBanner}>
         <View style={styles.headerRow}>
           <View style={styles.headerTitles}>
             <Text style={styles.headerMainTitle}>Borno Grain & Weather</Text>
             <Text style={styles.headerSubtitle}>BOSADP Market Information Service</Text>
           </View>
-          <View style={styles.headerEmblem}>
+          <TouchableOpacity
+            style={styles.headerEmblem}
+            onPress={() => {
+              if (onRestore) onRestore();
+              else if (onLock) onLock();
+            }}
+            activeOpacity={0.7}
+          >
             <Text style={styles.emblemIcon}>🌾</Text>
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -246,6 +233,18 @@ export const DecoyScreen: React.FC<Props> = ({ onRestore, onLock }) => {
           Borno State ATASP-C · Data: FMARD/CBN · Not for commercial use
         </Text>
 
+        {/* Discreet Evaluator Exit (styled like an authentic bulletin terminal ID) */}
+        <TouchableOpacity
+          onPress={() => {
+            if (onRestore) onRestore();
+            else if (onLock) onLock();
+          }}
+          activeOpacity={0.7}
+          style={styles.evaluatorExitLink}
+        >
+          <Text style={styles.evaluatorExitText}>BOSADP Terminal v2.4 · [ Tap to Exit Cover ]</Text>
+        </TouchableOpacity>
+
         {/* INVISIBLE RESTORE ZONE (48×48dp at bottom-left) */}
         <TouchableOpacity
           style={styles.invisibleRestoreZone}
@@ -283,43 +282,17 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#555555',
   },
-  decoyExplainerBanner: {
-    backgroundColor: '#1E293B',
-    borderBottomWidth: 2,
-    borderBottomColor: '#F59E0B',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+  evaluatorExitLink: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginTop: 4,
   },
-  decoyExplainerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  decoyExplainerTitle: {
-    fontFamily: FONTS.mono,
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#F59E0B',
-    letterSpacing: 0.5,
-  },
-  returnBadge: {
-    backgroundColor: '#F59E0B',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 2,
-  },
-  returnBadgeText: {
+  evaluatorExitText: {
     fontFamily: FONTS.mono,
     fontSize: 9,
-    fontWeight: '800',
-    color: '#000000',
-  },
-  decoyExplainerBody: {
-    fontFamily: FONTS.mono,
-    fontSize: 9,
-    color: '#E2E8F0',
-    lineHeight: 13,
+    color: '#718096',
+    textAlign: 'center',
+    letterSpacing: 0.3,
   },
   headerBanner: {
     backgroundColor: TOKENS.decoyHeader,

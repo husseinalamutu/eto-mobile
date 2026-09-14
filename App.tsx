@@ -135,7 +135,7 @@ function AppContent() {
   };
 
   const handleDecoyRestore = () => {
-    setScreen('secure');
+    setScreen('locked');
   };
 
   const handleUnlock = () => {

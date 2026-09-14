@@ -101,8 +101,8 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
           text: '• Tap status bar clock 3× rapidly\n• Enter Duress PIN 9999 at lock screen\n• Enter Panic Wipe PIN 0000 (wipes database & opens decoy)',
         },
         {
-          heading: 'How to Return to Incident Ledger',
-          text: 'Tap the top banner on the grain screen, OR press and hold the bottom-left corner for 2 seconds to restore the Incident Ledger.',
+          heading: 'Covert Exit (No Obvious Traps)',
+          text: 'To avoid blowing cover at checkpoints, there are no obvious "exit" buttons for armed actors to see. To exit during evaluation, tap the 🌾 emblem at the top-right, tap the footer link, or hold the bottom-left corner for 2 seconds. The app then requests PIN 1234.',
           highlight: true,
         },
       ],
