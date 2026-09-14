@@ -38,7 +38,7 @@ function AppContent() {
   const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
 
   const [screen, setScreen] = useState<AppScreen>('language');
-  const [previousScreen, setPreviousScreen] = useState<AppScreen>('secure');
+  const [previousScreen, setPreviousScreen] = useState<AppScreen>('locked');
   const [activeTab, setActiveTab] = useState<MainTab>('ledger');
   const [language, setLanguage] = useState<Language>('en');
   const [isDbReady, setIsDbReady] = useState<boolean>(false);
@@ -120,6 +120,7 @@ function AppContent() {
 
   const handleLanguageSelect = (selected: Language) => {
     setLanguage(selected);
+    setPreviousScreen('locked');
     setScreen('onboarding');
   };
 
@@ -169,7 +170,13 @@ function AppContent() {
   if (screen === 'onboarding') {
     return (
       <OnboardingScreen
-        onComplete={() => setScreen('secure')}
+        onComplete={() => {
+          if (previousScreen === 'secure') {
+            setScreen('secure');
+          } else {
+            setScreen('locked');
+          }
+        }}
         language={language}
         onToggleLanguage={toggleLanguage}
       />

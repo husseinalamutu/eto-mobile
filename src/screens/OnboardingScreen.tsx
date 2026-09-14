@@ -274,7 +274,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({
           activeOpacity={0.8}
         >
           <Text style={styles.nextButtonText}>
-            {isLast ? 'ENTER NATIONAL INCIDENT LEDGER (PIN: 1234) →' : 'NEXT →'}
+            {isLast ? 'PROCEED TO ENCLAVE UNLOCK (PIN: 1234) →' : 'NEXT →'}
           </Text>
         </TouchableOpacity>
       </View>
