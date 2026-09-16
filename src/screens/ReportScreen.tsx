@@ -161,7 +161,8 @@ export const ReportScreen: React.FC<Props> = ({
   const [selectedStateIndex, setSelectedStateIndex] = useState<number>(2); // Default Borno
   const [selectedLGAIndex, setSelectedLGAIndex] = useState<number>(0);
   const [selectedWardIndex, setSelectedWardIndex] = useState<number>(0);
-  const [showLocationPicker, setShowLocationPicker] = useState<boolean>(false);
+  const [isLocationExpanded, setIsLocationExpanded] = useState<boolean>(true);
+  const [customLocationText, setCustomLocationText] = useState<string>('');
   const [formError, setFormError] = useState<string>('');
 
   // Panic Tap tracking (3 taps within 800ms)
@@ -352,7 +353,14 @@ export const ReportScreen: React.FC<Props> = ({
   const currentState = NIGERIA_LOCATIONS[selectedStateIndex] || NIGERIA_LOCATIONS[0];
   const currentLGA = currentState.lgas[selectedLGAIndex] || currentState.lgas[0];
   const currentWard = currentLGA.wards[selectedWardIndex] || currentLGA.wards[0];
-  const locationSummary = `${currentWard}, ${currentLGA.name} LGA, ${currentState.state} State`;
+
+  const locationSummary = useMemo(() => {
+    const base = `${currentWard}, ${currentLGA.name} LGA, ${currentState.state} State`;
+    if (customLocationText.trim()) {
+      return `${customLocationText.trim()} (${base})`;
+    }
+    return base;
+  }, [currentWard, currentLGA.name, currentState.state, customLocationText]);
 
   // Submit New Record
   const handleSaveRecord = async () => {
@@ -388,6 +396,8 @@ export const ReportScreen: React.FC<Props> = ({
       setFormTitle('');
       setFormNote('');
       setFormError('');
+      setCustomLocationText('');
+      setIsLocationExpanded(true);
       await loadDatabaseReports();
 
       if (onReportSubmitted) {
@@ -596,10 +606,24 @@ export const ReportScreen: React.FC<Props> = ({
                 ))}
               </ScrollView>
 
-              {/* Location Picker */}
-              <Text style={styles.inputLabel}>LOCATION (NIGERIAN LGA / GPS)</Text>
+              {/* Location Section Header */}
+              <View style={styles.locationHeaderRow}>
+                <Text style={styles.inputLabel}>LOCATION (NATIONWIDE DIRECTORY)</Text>
+                <TouchableOpacity
+                  onPress={() => setIsLocationExpanded(!isLocationExpanded)}
+                  style={styles.toggleLocBtn}
+                  activeOpacity={0.7}
+                  hitSlop={HIT_SLOP_64}
+                >
+                  <Text style={styles.toggleLocBtnText}>
+                    {isLocationExpanded ? 'COLLAPSE ▴' : 'CHANGE LOCATION ▾'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Location Summary Pill */}
               <TouchableOpacity
-                onPress={() => setShowLocationPicker(true)}
+                onPress={() => setIsLocationExpanded(!isLocationExpanded)}
                 style={styles.locationSelectorBtn}
                 activeOpacity={0.8}
               >
@@ -607,8 +631,110 @@ export const ReportScreen: React.FC<Props> = ({
                 <Text style={styles.locationSummaryText} numberOfLines={1}>
                   {locationSummary}
                 </Text>
-                <Text style={styles.changeText}>CHANGE</Text>
+                <Text style={styles.changeText}>
+                  {isLocationExpanded ? '▴' : '▾'}
+                </Text>
               </TouchableOpacity>
+
+              {/* Expandable Interactive Location Directory (Inline — 100% Reliable on Android) */}
+              {isLocationExpanded && (
+                <View style={styles.inlineLocationCard}>
+                  {/* State Picker */}
+                  <Text style={styles.locationSubLabel}>1. SELECT STATE ({NIGERIA_LOCATIONS.length} AVAILABLE)</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.lgaScroll}>
+                    {NIGERIA_LOCATIONS.map((loc, idx) => (
+                      <TouchableOpacity
+                        key={loc.state}
+                        onPress={() => {
+                          setSelectedStateIndex(idx);
+                          setSelectedLGAIndex(0);
+                          setSelectedWardIndex(0);
+                        }}
+                        style={[
+                          styles.locChip,
+                          selectedStateIndex === idx && styles.locChipActive,
+                        ]}
+                        activeOpacity={0.7}
+                        hitSlop={HIT_SLOP_64}
+                      >
+                        <Text
+                          style={[
+                            styles.locChipText,
+                            selectedStateIndex === idx && styles.locChipTextActive,
+                          ]}
+                        >
+                          {loc.state}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+
+                  {/* LGA Picker */}
+                  <Text style={styles.locationSubLabel}>2. SELECT LGA ({currentState.state})</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.lgaScroll}>
+                    {currentState.lgas.map((lga, idx) => (
+                      <TouchableOpacity
+                        key={lga.name}
+                        onPress={() => {
+                          setSelectedLGAIndex(idx);
+                          setSelectedWardIndex(0);
+                        }}
+                        style={[
+                          styles.locChip,
+                          selectedLGAIndex === idx && styles.locChipActive,
+                        ]}
+                        activeOpacity={0.7}
+                        hitSlop={HIT_SLOP_64}
+                      >
+                        <Text
+                          style={[
+                            styles.locChipText,
+                            selectedLGAIndex === idx && styles.locChipTextActive,
+                          ]}
+                        >
+                          {lga.name}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+
+                  {/* Ward Picker */}
+                  <Text style={styles.locationSubLabel}>3. WARD / COMMUNITY ({currentLGA.name})</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.lgaScroll}>
+                    {currentLGA.wards.map((w, idx) => (
+                      <TouchableOpacity
+                        key={w}
+                        onPress={() => setSelectedWardIndex(idx)}
+                        style={[
+                          styles.locChip,
+                          selectedWardIndex === idx && styles.locChipActive,
+                        ]}
+                        activeOpacity={0.7}
+                        hitSlop={HIT_SLOP_64}
+                      >
+                        <Text
+                          style={[
+                            styles.locChipText,
+                            selectedWardIndex === idx && styles.locChipTextActive,
+                          ]}
+                        >
+                          {w}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+
+                  {/* Optional Precise Landmark / Village Input */}
+                  <Text style={styles.locationSubLabel}>4. SPECIFIC VILLAGE / LANDMARK (OPTIONAL)</Text>
+                  <TextInput
+                    style={styles.landmarkInput}
+                    placeholder="e.g. Daffo Market, Km 14 Barricade, Central Mosque..."
+                    placeholderTextColor={theme.mutedForeground}
+                    value={customLocationText}
+                    onChangeText={setCustomLocationText}
+                  />
+                </View>
+              )}
 
               {/* Title / Summary */}
               <Text style={styles.inputLabel}>TITLE / SUMMARY</Text>
@@ -670,106 +796,6 @@ export const ReportScreen: React.FC<Props> = ({
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
-      </Modal>
-
-      {/* ── Sub-Modal: Nigerian Location Directory Picker ── */}
-      <Modal
-        visible={showLocationPicker}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowLocationPicker(false)}
-      >
-        <View style={styles.locationModalOverlay}>
-          <View style={styles.locationModalCard}>
-            <Text style={styles.locationModalTitle}>Select Nigerian Location</Text>
-
-            {/* State Picker */}
-            <Text style={styles.locationSubLabel}>1. STATE</Text>
-            <View style={styles.chipGrid}>
-              {NIGERIA_LOCATIONS.map((loc, idx) => (
-                <TouchableOpacity
-                  key={loc.state}
-                  onPress={() => {
-                    setSelectedStateIndex(idx);
-                    setSelectedLGAIndex(0);
-                    setSelectedWardIndex(0);
-                  }}
-                  style={[
-                    styles.locChip,
-                    selectedStateIndex === idx && styles.locChipActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.locChipText,
-                      selectedStateIndex === idx && styles.locChipTextActive,
-                    ]}
-                  >
-                    {loc.state}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* LGA Picker */}
-            <Text style={styles.locationSubLabel}>2. LGA</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.lgaScroll}>
-              {currentState.lgas.map((lga, idx) => (
-                <TouchableOpacity
-                  key={lga.name}
-                  onPress={() => {
-                    setSelectedLGAIndex(idx);
-                    setSelectedWardIndex(0);
-                  }}
-                  style={[
-                    styles.locChip,
-                    selectedLGAIndex === idx && styles.locChipActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.locChipText,
-                      selectedLGAIndex === idx && styles.locChipTextActive,
-                    ]}
-                  >
-                    {lga.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            {/* Ward Picker */}
-            <Text style={styles.locationSubLabel}>3. WARD / COMMUNITY</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.lgaScroll}>
-              {currentLGA.wards.map((w, idx) => (
-                <TouchableOpacity
-                  key={w}
-                  onPress={() => setSelectedWardIndex(idx)}
-                  style={[
-                    styles.locChip,
-                    selectedWardIndex === idx && styles.locChipActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.locChipText,
-                      selectedWardIndex === idx && styles.locChipTextActive,
-                    ]}
-                  >
-                    {w}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            <TouchableOpacity
-              onPress={() => setShowLocationPicker(false)}
-              style={styles.locationDoneBtn}
-            >
-              <Text style={styles.locationDoneBtnText}>CONFIRM LOCATION</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -1320,26 +1346,43 @@ const createStyles = (theme: ThemeTokens, isDark: boolean) => StyleSheet.create(
     color: theme.primaryForeground,
     letterSpacing: 1.5,
   },
-  locationModalOverlay: {
-    flex: 1,
-    backgroundColor: '#000000E0',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
+  locationHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
   },
-  locationModalCard: {
-    backgroundColor: theme.card,
-    borderWidth: 1,
-    borderColor: theme.primary,
-    borderRadius: 4,
-    padding: 16,
-    maxHeight: '80%',
+  toggleLocBtn: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
   },
-  locationModalTitle: {
-    fontFamily: FONTS.condensed,
-    fontSize: 16,
-    fontWeight: '700',
+  toggleLocBtnText: {
+    fontFamily: FONTS.mono,
+    fontSize: 9,
+    fontWeight: '800',
     color: theme.primary,
+    letterSpacing: 0.5,
+  },
+  inlineLocationCard: {
+    backgroundColor: theme.secondary,
+    borderWidth: 1,
+    borderColor: theme.border,
+    borderRadius: 3,
+    padding: 10,
     marginBottom: 12,
+    marginTop: 4,
+  },
+  landmarkInput: {
+    borderWidth: 1,
+    borderColor: theme.border,
+    borderRadius: 2,
+    backgroundColor: theme.background,
+    color: theme.foreground,
+    fontFamily: FONTS.mono,
+    fontSize: 11,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginTop: 2,
   },
   locationSubLabel: {
     fontFamily: FONTS.mono,
@@ -1358,7 +1401,7 @@ const createStyles = (theme: ThemeTokens, isDark: boolean) => StyleSheet.create(
   locChip: {
     borderWidth: 1,
     borderColor: theme.border,
-    backgroundColor: theme.secondary,
+    backgroundColor: theme.card,
     paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: 2,
@@ -1380,19 +1423,5 @@ const createStyles = (theme: ThemeTokens, isDark: boolean) => StyleSheet.create(
   },
   lgaScroll: {
     marginBottom: 8,
-  },
-  locationDoneBtn: {
-    backgroundColor: theme.primary,
-    paddingVertical: 10,
-    borderRadius: 2,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  locationDoneBtnText: {
-    fontFamily: FONTS.condensed,
-    fontSize: 12,
-    fontWeight: '700',
-    color: theme.primaryForeground,
-    letterSpacing: 1,
   },
 });
