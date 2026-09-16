@@ -15,7 +15,6 @@ import { useTheme } from '../theme/ThemeContext';
 interface Props {
   currentLanguage: Language;
   onSelect: (lang: Language) => void;
-  onOpenSpec?: () => void;
 }
 
 interface LanguageOption {
@@ -66,7 +65,6 @@ const LANGUAGES: LanguageOption[] = [
 export const LanguageSelectorScreen: React.FC<Props> = ({
   currentLanguage,
   onSelect,
-  onOpenSpec,
 }) => {
   const { theme, isDark } = useTheme();
   const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
@@ -78,20 +76,11 @@ export const LanguageSelectorScreen: React.FC<Props> = ({
         backgroundColor={theme.background}
       />
 
-      {/* Top Header with discrete SPEC button */}
+      {/* Top Header */}
       <View style={styles.topBar}>
         <Text style={styles.clockText}>09:41</Text>
         <View style={styles.topRightControls}>
           <Text style={styles.statusBarIcons}>▲ 100%</Text>
-          {onOpenSpec && (
-            <TouchableOpacity
-              onPress={onOpenSpec}
-              style={styles.specButton}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.specButtonText}>SPEC</Text>
-            </TouchableOpacity>
-          )}
         </View>
       </View>
 
@@ -204,21 +193,6 @@ const createStyles = (theme: ThemeTokens, isDark: boolean) =>
       fontFamily: FONTS.mono,
       fontSize: 10,
       color: theme.mutedForeground,
-    },
-    specButton: {
-      backgroundColor: theme.secondary,
-      borderWidth: 1,
-      borderColor: theme.border,
-      paddingHorizontal: 8,
-      paddingVertical: 3,
-      borderRadius: 2,
-    },
-    specButtonText: {
-      fontFamily: FONTS.mono,
-      fontSize: 9,
-      color: theme.primary,
-      fontWeight: '700',
-      letterSpacing: 1.5,
     },
     scrollContent: {
       paddingHorizontal: 20,

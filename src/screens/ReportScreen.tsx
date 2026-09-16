@@ -26,7 +26,6 @@ interface Props {
   onReportSubmitted?: () => void;
   onPanicTap?: () => void;
   onLock?: () => void;
-  onOpenSpec?: () => void;
   onOpenGuide?: () => void;
 }
 
@@ -140,7 +139,6 @@ export const ReportScreen: React.FC<Props> = ({
   onReportSubmitted,
   onPanicTap,
   onLock,
-  onOpenSpec,
   onOpenGuide,
 }) => {
   const { theme, isDark, riskConfig, statusConfig } = useTheme();
@@ -443,16 +441,6 @@ export const ReportScreen: React.FC<Props> = ({
               hitSlop={HIT_SLOP_64}
             >
               <Text style={styles.guideMiniBtnText}>📖 GUIDE</Text>
-            </TouchableOpacity>
-          )}
-          {onOpenSpec && (
-            <TouchableOpacity
-              onPress={onOpenSpec}
-              style={styles.specMiniBtn}
-              activeOpacity={0.7}
-              hitSlop={HIT_SLOP_64}
-            >
-              <Text style={styles.specMiniBtnText}>SPEC</Text>
             </TouchableOpacity>
           )}
           {onLock && (
@@ -852,20 +840,6 @@ const createStyles = (theme: ThemeTokens, isDark: boolean) => StyleSheet.create(
     fontSize: 9,
     color: theme.statusPending,
     letterSpacing: 0.8,
-  },
-  specMiniBtn: {
-    backgroundColor: theme.secondary,
-    borderWidth: 1,
-    borderColor: theme.primary,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 2,
-  },
-  specMiniBtnText: {
-    fontFamily: FONTS.mono,
-    fontSize: 8,
-    color: theme.primary,
-    fontWeight: '700',
   },
   guideMiniBtn: {
     backgroundColor: theme.secondary,

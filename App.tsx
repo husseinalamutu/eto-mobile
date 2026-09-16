@@ -21,7 +21,6 @@ import { ReportScreen } from './src/screens/ReportScreen';
 import { OpportunityScreen } from './src/screens/OpportunityScreen';
 import { SyncScreen } from './src/screens/SyncScreen';
 import { DecoyScreen } from './src/screens/DecoyScreen';
-import { DesignSpecScreen } from './src/screens/DesignSpecScreen';
 import { LoginScreen } from './src/screens/LoginScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 
@@ -124,11 +123,6 @@ function AppContent() {
     setScreen('onboarding');
   };
 
-  const handleOpenSpec = () => {
-    setPreviousScreen(screen === 'spec' ? 'secure' : screen);
-    setScreen(screen === 'spec' ? previousScreen : 'spec');
-  };
-
   const handleOpenGuide = () => {
     setPreviousScreen(screen === 'onboarding' ? 'secure' : screen);
     setScreen(screen === 'onboarding' ? (previousScreen || 'secure') : 'onboarding');
@@ -161,12 +155,7 @@ function AppContent() {
     );
   }
 
-  // 1. SPECIFICATION SCREEN
-  if (screen === 'spec') {
-    return <DesignSpecScreen onBack={() => setScreen(previousScreen || 'secure')} />;
-  }
-
-  // 1.5. ONBOARDING & FIELD MANUAL SCREEN
+  // 1. ONBOARDING & FIELD MANUAL SCREEN
   if (screen === 'onboarding') {
     return (
       <OnboardingScreen
@@ -209,25 +198,10 @@ function AppContent() {
   // 4. LANGUAGE SELECTOR SCREEN (Initial Boot / Change Language)
   if (screen === 'language') {
     return (
-      <View style={styles.flexOne}>
-        {/* Floating discrete SPEC toggle */}
-        <View style={styles.specFloatWrapper}>
-          <TouchableOpacity
-            style={styles.specFloatBtn}
-            onPress={handleOpenSpec}
-            activeOpacity={0.7}
-            hitSlop={HIT_SLOP_64}
-          >
-            <Text style={styles.specFloatText}>SPEC</Text>
-          </TouchableOpacity>
-        </View>
-
-        <LanguageSelectorScreen
-          currentLanguage={language}
-          onSelect={handleLanguageSelect}
-          onOpenSpec={handleOpenSpec}
-        />
-      </View>
+      <LanguageSelectorScreen
+        currentLanguage={language}
+        onSelect={handleLanguageSelect}
+      />
     );
   }
 
@@ -242,7 +216,6 @@ function AppContent() {
           <ReportScreen
             language={language}
             onPanicTap={handlePanicTap}
-            onOpenSpec={handleOpenSpec}
             onOpenGuide={handleOpenGuide}
             onLock={handleLock}
             onReportSubmitted={() => {
@@ -285,15 +258,6 @@ function AppContent() {
                   hitSlop={HIT_SLOP_64}
                 >
                   <Text style={styles.guideMiniBtnText}>📖 GUIDE</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={handleOpenSpec}
-                  style={styles.specMiniBtn}
-                  activeOpacity={0.7}
-                  hitSlop={HIT_SLOP_64}
-                >
-                  <Text style={styles.specMiniBtnText}>SPEC</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -345,15 +309,6 @@ function AppContent() {
                   hitSlop={HIT_SLOP_64}
                 >
                   <Text style={styles.guideMiniBtnText}>📖 GUIDE</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={handleOpenSpec}
-                  style={styles.specMiniBtn}
-                  activeOpacity={0.7}
-                  hitSlop={HIT_SLOP_64}
-                >
-                  <Text style={styles.specMiniBtnText}>SPEC</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -508,31 +463,6 @@ const createStyles = (theme: ThemeTokens, isDark: boolean) =>
     tabContentWrapper: {
       flex: 1,
     },
-    specFloatWrapper: {
-      position: 'absolute',
-      top: 10,
-      right: 14,
-      zIndex: 99,
-    },
-    specFloatBtn: {
-      backgroundColor: theme.secondary,
-      borderWidth: 1,
-      borderColor: theme.border,
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 3,
-      minHeight: 28,
-      minWidth: 48,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    specFloatText: {
-      fontSize: 9,
-      fontFamily: FONTS.mono,
-      fontWeight: '700',
-      color: theme.mutedForeground,
-      letterSpacing: 1,
-    },
     panicTriggerBar: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -602,20 +532,6 @@ const createStyles = (theme: ThemeTokens, isDark: boolean) =>
       fontSize: 9,
       fontWeight: '700',
       color: theme.primary,
-    },
-    specMiniBtn: {
-      backgroundColor: theme.secondary,
-      borderWidth: 1,
-      borderColor: theme.border,
-      paddingHorizontal: 7,
-      paddingVertical: 3,
-      borderRadius: 2,
-    },
-    specMiniBtnText: {
-      fontFamily: FONTS.mono,
-      fontSize: 9,
-      fontWeight: '700',
-      color: theme.mutedForeground,
     },
     lockMiniBtn: {
       backgroundColor: theme.secondary,
