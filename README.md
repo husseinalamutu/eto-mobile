@@ -5,6 +5,23 @@
 
 ---
 
+## 📲 Live Evaluation & Standalone Android APK (100% Offline)
+
+Evaluators and judges can immediately download and install the compiled standalone Android APK (zero build setup required):
+
+* **Direct APK Download URL:** [https://expo.dev/accounts/husseinalamz/projects/eto-mobile/builds/9d558041-1365-4ba7-9b06-b1c345414a6c](https://expo.dev/accounts/husseinalamz/projects/eto-mobile/builds/9d558041-1365-4ba7-9b06-b1c345414a6c)
+* **Package Identifier:** `com.eto.civic` (v1.0.0, Standalone Android APK)
+* **Offline Verification:** Once installed, enable **Airplane Mode** (no Wi-Fi, no mobile data) to test 100% offline incident logging, encrypted SQLite WAL storage, tactical PIN locking, duress decoy switching, and multilingual support.
+
+### How to Install on Android:
+1. Open the link above on your Android device (or download to Mac and transfer via USB/Google Drive).
+2. Tap **Download** to save `eto-mobile.apk`.
+3. **On Android 8.0+ (API 26+):** When prompted, tap *Settings* $\rightarrow$ enable *Install unknown apps* for your browser.
+4. **On Android 7.1.1 and lower:** Go to *Settings* $\rightarrow$ *Security* $\rightarrow$ enable *Unknown sources*.
+5. Tap **Install** and open **ÈTÒ**.
+
+---
+
 ## 🌍 Executive Summary & Challenge Alignment
 
 Across all geopolitical zones of Nigeria and the Sahel (from the agrarian corridors of Oyo and Enugu to Kano, Kaduna, and Borno), frontline community peace monitors and rural citizens operate in high-risk environments characterized by:
