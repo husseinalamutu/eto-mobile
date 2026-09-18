@@ -5,10 +5,10 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   TextInput,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { TOKENS, FONTS, METRICS } from '../theme/tokens';
 
 interface Props {
@@ -68,14 +68,8 @@ export const DecoyScreen: React.FC<Props> = ({ onRestore, onLock }) => {
   const estimatedCost = countNum * currentGrain.unitPrice;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor={TOKENS.decoyBg} />
-
-      {/* Simulated System Status Bar */}
-      <View style={styles.statusBarSim}>
-        <Text style={styles.clockSim}>09:41</Text>
-        <Text style={styles.systemSim}>▲▲▲ WiFi 🔋85%</Text>
-      </View>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom', 'left', 'right']}>
+      <StatusBar barStyle="dark-content" backgroundColor={TOKENS.decoyBg} translucent={false} />
 
       {/* Official Government Header — BOSADP Green (Emblem serves as covert exit trigger) */}
       <View style={styles.headerBanner}>

@@ -4,12 +4,12 @@ import {
   Text,
   View,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   ActivityIndicator,
   AppState,
   AppStateStatus,
 } from 'react-native';
+import { SafeAreaProvider, SafeAreaView, initialWindowMetrics } from 'react-native-safe-area-context';
 import * as ScreenCapture from 'expo-screen-capture';
 import { AppScreen, MainTab, Language } from './src/types';
 import { translations } from './src/i18n/translations';
@@ -26,9 +26,11 @@ import { OnboardingScreen } from './src/screens/OnboardingScreen';
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }
 
@@ -147,8 +149,8 @@ function AppContent() {
 
   if (!isDbReady) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={theme.background} />
+      <SafeAreaView style={styles.loadingContainer} edges={['top', 'bottom', 'left', 'right']}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={theme.background} translucent={false} />
         <ActivityIndicator size="large" color={theme.primary} />
         <Text style={styles.loadingText}>INITIALIZING ENCRYPTED LEDGER...</Text>
       </SafeAreaView>
@@ -207,8 +209,8 @@ function AppContent() {
 
   // 5. SECURE CIVIC APPLICATION (Ledger, Opportunities, Sync, Navigation)
   return (
-    <SafeAreaView style={styles.mainContainer}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={theme.background} />
+    <SafeAreaView style={styles.mainContainer} edges={['top', 'bottom', 'left', 'right']}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={theme.background} translucent={false} />
 
       {/* Screen Body */}
       <View style={styles.body}>

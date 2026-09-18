@@ -4,11 +4,11 @@ import {
   Text,
   View,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   Modal,
   BackHandler,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Language } from '../types';
 import { translations } from '../i18n/translations';
 import { wipeAllLocalData, getUserPin, getDuressPin } from '../db';
@@ -119,8 +119,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom', 'left', 'right']}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} translucent={false} />
       <View style={styles.container}>
         {/* Top Bar: Clean & Minimalist */}
         <View style={styles.topBar}>

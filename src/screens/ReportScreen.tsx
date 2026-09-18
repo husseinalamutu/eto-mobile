@@ -6,7 +6,6 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   StatusBar,
   Modal,
   KeyboardAvoidingView,
@@ -413,8 +412,8 @@ export const ReportScreen: React.FC<Props> = ({
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
+    <View style={styles.safeArea}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} translucent={false} />
 
       {/* ── Status Bar — PANIC TRIGGER ZONE (3 rapid taps within 800ms) ── */}
       <TouchableOpacity
@@ -785,7 +784,7 @@ export const ReportScreen: React.FC<Props> = ({
           </View>
         </KeyboardAvoidingView>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 

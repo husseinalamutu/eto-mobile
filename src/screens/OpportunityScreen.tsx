@@ -6,7 +6,6 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
-  SafeAreaView,
   StatusBar,
   Alert,
 } from 'react-native';
@@ -95,8 +94,8 @@ export const OpportunityScreen: React.FC<OpportunityScreenProps> = ({ language }
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
+    <View style={styles.safeArea}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} translucent={false} />
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.screenHeading}>{t.oppHeading.toUpperCase()}</Text>
@@ -287,7 +286,7 @@ export const OpportunityScreen: React.FC<OpportunityScreenProps> = ({ language }
           </View>
         }
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

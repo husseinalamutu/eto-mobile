@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   FlatList,
   Alert,
-  SafeAreaView,
   StatusBar,
   ActivityIndicator,
   Platform,
@@ -187,8 +186,8 @@ export const SyncScreen: React.FC<SyncScreenProps> = ({ language, onSyncComplete
       : allReports.filter((r) => r.synced === 1);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
+    <View style={styles.safeArea}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} translucent={false} />
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.screenHeading}>{t.syncHeading}</Text>
@@ -379,7 +378,7 @@ export const SyncScreen: React.FC<SyncScreenProps> = ({ language, onSyncComplete
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 

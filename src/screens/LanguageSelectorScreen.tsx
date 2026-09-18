@@ -4,10 +4,10 @@ import {
   Text,
   View,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Language } from '../types';
 import { ThemeTokens, FONTS, METRICS } from '../theme/tokens';
 import { useTheme } from '../theme/ThemeContext';
@@ -70,10 +70,11 @@ export const LanguageSelectorScreen: React.FC<Props> = ({
   const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom', 'left', 'right']}>
       <StatusBar
         barStyle={isDark ? 'light-content' : 'dark-content'}
         backgroundColor={theme.background}
+        translucent={false}
       />
 
       {/* Top Header */}
