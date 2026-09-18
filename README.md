@@ -9,8 +9,10 @@
 
 Evaluators and judges can immediately download and install the compiled standalone Android APK (zero build setup required):
 
-* **Direct APK Download URL:** [https://expo.dev/accounts/husseinalamz/projects/eto-mobile/builds/9d558041-1365-4ba7-9b06-b1c345414a6c](https://expo.dev/accounts/husseinalamz/projects/eto-mobile/builds/9d558041-1365-4ba7-9b06-b1c345414a6c)
-* **Package Identifier:** `com.eto.civic` (v1.0.0, Standalone Android APK)
+* **Direct APK Install Link:** [https://expo.dev/accounts/husseinalamz/projects/eto-mobile/builds/986c00ca-2234-464c-981f-67ec50d19955](https://expo.dev/accounts/husseinalamz/projects/eto-mobile/builds/986c00ca-2234-464c-981f-67ec50d19955)
+* **Direct APK Binary (.apk):** [https://expo.dev/artifacts/eas/W99pnd2dINVLvOzYA2Mz2icuQkeRvgX9k-z5wPcW1FI.apk](https://expo.dev/artifacts/eas/W99pnd2dINVLvOzYA2Mz2icuQkeRvgX9k-z5wPcW1FI.apk)
+* **Package Identifier:** `com.eto.civic` (v1.0.0, Standalone Android Production APK)
+* **Changelog:** Fixed Android status bar & notch insets (`react-native-safe-area-context` + `SafeAreaProvider`).
 * **Offline Verification:** Once installed, enable **Airplane Mode** (no Wi-Fi, no mobile data) to test 100% offline incident logging, encrypted SQLite WAL storage, tactical PIN locking, duress decoy switching, and multilingual support.
 
 ### How to Install on Android:
